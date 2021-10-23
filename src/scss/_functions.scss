@@ -1,0 +1,180 @@
+@use "sass:math";
+@use "sass:list";
+
+//@import "_variables";
+
+@function get-variable($key, $map-key: null) {
+  $value: map-get($variables, $key); // why map-get-strict() doesn't work here??
+
+  //@if is-map($value) { // IT DOESN'T WORK HERE TOO !!!! FUCKING SCSS!!!!!!!!!!
+  @if type-of($value) == 'map' {
+    $value: map-get($value, $map-key);
+  }
+
+  @return $value;
+}
+
+@function map-get-strict($map, $key) {
+  @if map-has-key($map, $key) {
+    @return #{map-get($map, $key)};
+  } @else {
+    @error "The #{$key} is not in the #{$map} map!";
+  }
+}
+
+@function is-map($value) {
+  @return type-of($value) == 'map';
+}
+
+@function to-number($value) {
+  @if type-of($value) == 'number' {
+    @return $value;
+  } @else if type-of($value) != 'string' {
+    $_: log('Value for `to-number` should be a number or a string.');
+  }
+
+  $result: 0;
+  $digits: 0;
+  $minus: str-slice($value, 1, 1) == '-';
+  $numbers: ('0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9);
+
+  @for $i from if($minus, 2, 1) through str-length($value) {
+    $character: str-slice($value, $i, $i);
+
+    @if not (index(map-keys($numbers), $character) or $character == '.') {
+      @return add-unit(if($minus, -$result, $result), str-slice($value, $i))
+    }
+
+    @if $character == '.' {
+      $digits: 1;
+    } @else if $digits == 0 {
+      $result: $result * 10 + map-get($numbers, $character);
+    } @else {
+      $digits: $digits * 10;
+      $result: $result + map-get($numbers, $character) / $digits;
+    }
+  }
+
+  @return if($minus, -$result, $result);
+}
+
+@function to-unit($value, $to-unit: 'em', $base-font: $_fs, $max-viewport-for-vw-vh: 1530px) {
+  // if not $_fs replace $base-font default on 16px
+  $result: $value;
+  $source-unit: unit($value);
+  $value: strip-unit($value);
+  $base-font: strip-unit($base-font);
+
+  @if $source-unit == $to-unit {
+    @return $result;
+  }
+
+  @if $source-unit == 'px' {
+  	@if $to-unit == 'em' or $to-unit == 'rem' {
+  		$result: #{math.div($value, $base-font)}#{$to-unit};
+  	} @else if($to-unit == 'per') {
+  		$result: percentage(math.div($value, $base-font));
+  	} @else if $to-unit == 'vw' or $to-unit == 'vh' { // is this need ?
+      $result: $result * to-number(#{100}#{$to-unit}) / $max-viewport-for-vw-vh;
+    }
+  } @else if $source-unit == 'em' or $source-unit == 'rem' { // should be EM computed to parent block instead of to base font ? check it later
+    @if ($to-unit == "px") {
+  		$result: #{$value * $base-font}#{$to-unit};
+  	} @else if ($to-unit == 'per') {
+      $result: percentage($value);
+    }
+  } @else if $source-unit == '%' {
+    @if ($to-unit == "px") {
+  		$result: #{math.div($value, 100) * $base-font}#{$to-unit};
+  	} @else if $to-unit == "em" or $to-unit == 'rem' {
+      $result: #{math.div($value, 100)}#{$to-unit};
+  	}
+  } @else if $source-unit == 'vw' {
+
+  }
+
+  @return to-number($result);
+}
+
+@function relative-unit($px) {
+  @return to-fixed(to-unit($px, 'rem'), 3);
+}
+
+@function calc-responsive($min-size, $max-size, $min-vw: get-variable(breakpoint, xs), $max-vw: get-variable(container)) { // mb move defaults to to-responsive
+  @return calc(#{$min-size} + #{strip-unit($max-size - $min-size)} * ((100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)}));
+}
+
+@function strip-unit($number) {
+	@if type-of($number) == 'number' and not unitless($number) {
+		@return math.div($number, ($number * 0 + 1));
+	}
+
+	@return $number;
+}
+
+@function add-unit($number, $unit) {
+  $units: ('px': 1px, 'cm': 1cm, 'mm': 1mm, '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in, 'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex, 'vw': 1vw, 'vh': 1vh, 'vmin': 1vmin, 'vmax': 1vmax);
+
+  @if not index(map-keys($units), $unit) {
+    $_: log('Invalid unit `#{$unit}`.');
+  }
+
+  @return $number * map-get($units, $unit);
+}
+
+
+
+@function sum($list) { // refactor after transform-unit
+  $result: 0;
+
+  @each $item in $list {
+    $item: to-number($item);
+    $item: strip-unit($item);
+    $result: $result + $item;
+  }
+
+  @return $result;
+}
+
+@function len($list) {
+  $result: 0;
+
+  @each $item in $list {
+    $result: $result + 1;
+  }
+
+  @return $result;
+}
+
+@function to-fixed($float, $digits: 4) {
+  $pow: math.pow(10, $digits);
+
+  @return round($float * $pow) / $pow;
+}
+
+@function repeater($character, $n) {
+  $result: "";
+
+  @for $i from 1 through $n {
+      @if ($i == 1) {
+        $result: $result + $character;
+      } @else {
+        $result: $result + " " + $character;
+      }
+  }
+
+  @return unquote($result); // refactor -> if it has quote
+}
+
+@function split($string, $separator: ' ', $startAt: 1) {
+    $workStr: str-slice($string,$startAt);
+    $list: ();
+    $indexOfFirstSpace: str-index($workStr,$separator);
+    @if $indexOfFirstSpace == null {
+        $list: ($workStr);
+    } @else {
+        $list: (str-slice($workStr, 1, $indexOfFirstSpace - 1));
+        $list: join($list,split($workStr, $startAt: $indexOfFirstSpace + 1));
+    }
+    @return $list;
+}

@@ -1,0 +1,94 @@
+@import "_functions";
+
+$_fs: 16px;
+$variables: (
+  // add general line-height
+  // add global font-size
+  // mb add general text margin-bottom
+  // add bg-color
+  // add general color
+  // add transition
+  // add base font-size (16px)
+  container: 1530px,
+  font-size: (
+    base: $_fs, // body
+    h1: relative-unit(72px),
+    h2: relative-unit(36px),
+    h3: relative-unit(28px),
+    h4: relative-unit(24px),
+    h5: relative-unit(18px),
+    h6: relative-unit(16px),
+    h1_mobile: relative-unit(36px),
+    h2_mobile: relative-unit(24px),
+    h3_mobile: relative-unit(18px),
+    h4_mobile: relative-unit(16px),
+    h5_mobile: relative-unit(18px),
+    h6_mobile: relative-unit(14px),
+  ),
+  space: (
+    // xxl: 180px,
+    // xl:  120px,
+    // lg:  100px,
+    // md:  60px,
+    // sm:  50px,
+    // xs: 40px,
+    // micro-xl:  30px,
+    // micro-lg:  20px,
+    // micro-md:  15px,
+    // micro-sm:  10px,
+
+    xxl: relative-unit(140px), //outer in mob 60
+    xl:  relative-unit(100px), //outer in mob 30
+    lg:  relative-unit(70px), //outer  in mob 12
+    md:  relative-unit(60px), //outer
+    sm:  relative-unit(50px), //outer
+    xs:  relative-unit(40px), // inner
+    micro-xxl: relative-unit(35px), //inner in mob 30
+    micro-xl:  relative-unit(30px), //inner
+    micro-lg:  relative-unit(20px), //inner
+    micro-md:  relative-unit(15px), //inner
+    micro-sm:  relative-unit(10px), //inner
+
+    //170
+    //150
+    //140
+    //130
+    //120
+    //100
+    //70
+    //50
+    //45
+    //40
+    //35
+    //30
+
+    //25
+    //20
+    //15
+    //10
+  ),
+  // gap: (
+  //   sections: relative-font(140px),
+  //   blocks: relative-font(100px),
+  // ),
+  breakpoint: (
+    xs:  320px,
+  	sm:  576px,
+  	md:  768px,
+    // 500
+    // 600
+  	lg:  992px,
+  	xl:  1200px,
+  	xxl: 1400px,
+  ),
+  color: (
+    red:   #EB5246,
+    blue:  #008DD2,
+    black: #000000,
+    grey_dark: #5C6366, // rename on grey
+    grey: #E4ECF4, // is not grey -> rename
+    grey_light: #F8F9FA,
+    light: #BDD1E4,
+    white: #ffffff,
+  ),
+);

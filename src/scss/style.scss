@@ -1,0 +1,397 @@
+@import "main"; // doesn't work ?
+
+@include setup-font('../fonts', 'PFDinDisplayPro', ('woff', 'ttf', 'eot'));
+
+@import "_mixins";
+
+:root {
+  @include css-variables;
+}
+
+$min_width: 320px;
+$max_width: get-variable(container);
+$min_font: 10px;
+$max_font:  get-variable(font-size, base);
+
+html {
+  box-sizing: border-box !important;
+
+  //font-size: 16px;
+
+  // $min_width: 320px;
+  // $max_width: get-variable(container);
+  // $min_font: 10px;
+  // $max_font:  get-variable(font-size, base);
+
+  @include to-responsive(font-size, $min_font, $max_font, $min_width, $max_width);
+}
+
+figure {
+  margin: 0;
+}
+
+*:not(.icon),
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+
+  //font-size: 18px;
+  font-family: 'PFDinDisplayPro';
+  color: get-variable(color, black);
+  background-color: get-variable(color, grey_light);
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 0;
+
+  &:first-child {
+    // margin-top: 0;
+  }
+
+  & + p {
+    margin-top: 1.1em;
+  }
+}
+
+@for $i from 1 through 6 {
+  h#{$i} {
+    margin-top: 0;
+    $weight: 400;
+    @if ($i == 2) {
+      $weight: 500;
+    } @else if ($i == 4) {
+      $weight: 300;
+    }
+    //@include h($i, $weight: $weight, $margin-bottom: get-variable(space, micro-xxl));
+    @include h($i, $weight: $weight, $margin-bottom: get-variable(space, xs));
+  }
+
+  // .font_size_#{$i} {
+  //   @include h($i, $margin-bottom: null); // mb compare
+  // }
+
+  .h#{$i}-like {
+    @include h($i); // mb compare
+  }
+  // .font_type_#{$i} {
+  //   @include h($i, get-variable(color, black)); // mb compare
+  // }
+}
+
+@for $i from 1 through 9 {
+  .font_weight_#{$i} {
+    font-weight: #{$i}00;
+  }
+}
+
+.font_color_black {
+  color: get-variable(color, black);
+}
+
+.font_color_grey {
+  color: get-variable(color, grey_dark);
+}
+
+// normalized
+
+// button, .btn {
+//   border: none;
+//   height: min-content;
+//   display: flex;
+//   background-color: transparent;
+//   align-items: center;
+// }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// input {
+//   font-family: inherit;
+//   font-size: inherit;
+//   font-weight: inherit;
+//   color: currentColor;
+//   outline: none;
+//   padding: 0;
+//   border: none;
+//
+//   &[type="text"], &[type="password"] {
+//     background-color: transparent;
+//     width: 100%;
+//     height: 100%;
+//     cursor: text;
+//   }
+// }
+
+// @mixin listClear {
+//     list-style-type:none;
+//     padding-left:0;
+//     margin-top:0;
+//     margin-bottom:0;
+// }
+//
+// @mixin formfieldsetClear {
+//     fieldset{
+//         border:0;
+//         padding:0;
+//         margin:0
+//     }
+//     legend{
+//         width:100%
+//     }
+// }
+//
+// @mixin normalizeInput(){
+//     font-family:inherit; /* 1 */
+//     font-size:100%; /* 1 */
+//     line-height:1.15; /* 1 */
+//     margin:0; /* 2 */
+//     overflow:visible;
+//     height:auto;
+//
+//     &:-webkit-autofill,
+//     &:-webkit-autofill:hover,
+//     &:-webkit-autofill:focus {
+//         line-height:1.15;
+//     }
+// }
+//
+// @mixin visuallyhidden{
+//     position:absolute;
+//     white-space:nowrap;
+//     width:1px;
+//     height:1px;
+//     overflow:hidden;
+//     border:0;
+//     padding:0;
+//     clip:rect(0 0 0 0);
+//     clip-path:inset(50%);
+//     margin:-1px;
+// }
+//
+// @mixin normalizeBtn(){
+//     &,& * {
+//         cursor:pointer;
+//     }
+//
+//     @include trans;
+//     background-color:transparent;
+//     font-family:inherit; /* 1 */
+//     font-size:100%; /* 1 */
+//     line-height:1.15; /* 1 */
+//     margin:0; /* 2 */
+//     overflow:visible;
+//     text-transform:none;
+//     height:auto;
+//     border: none;
+//
+//     &[type="button"],
+//     &[type="reset"],
+//     &[type="submit"]{
+//         -webkit-appearance:button;
+//     }
+//
+//     &:-moz-focusring,
+//     &[type="button"]:-moz-focusring,
+//     &[type="reset"]:-moz-focusring,
+//     &[type="submit"]:-moz-focusring{
+//         outline:1px dotted ButtonText;
+//     }
+//
+//     &::-webkit-file-upload-button{
+//         -webkit-appearance:button; /* 1 */
+//         font:inherit; /* 2 */
+//     }
+// }
+//
+// %fieldset {
+//     padding:0;
+//     border:0;
+//     margin:0;
+//     min-width:auto;
+//     width:100%;
+// }
+//
+// @mixin pageConfiguration {
+//     // Конфиг страницы
+//     html {
+//         box-sizing:  border-box;
+//         line-height: 1.15; /* 1 */
+//         -webkit-text-size-adjust: 100%; /* 2 */
+//         overflow: hidden auto;
+//     }
+//     body {
+//         -moz-font-smoothing:     antialiased;
+//         -moz-osx-font-smoothing: grayscale;
+//         -webkit-font-smoothing:  antialiased;
+//         text-rendering: optimizeLegibility;
+//         line-height:inherit;
+//         background-color: inherit;
+//         color: inherit;
+//     }
+//     html, body {
+//         width:  100%;
+//         height: 100%;
+//         margin:  0;
+//         padding: 0;
+//         min-width: 320px;
+//     }
+//     *, *::after, *::before {
+//         box-sizing: inherit;
+//     }
+//     * {
+//         -webkit-tap-highlight-color: transparent;
+//         &:focus {
+//             outline: none;
+//         }
+//     }
+//     [hidden] {
+//         display: none;
+//     }
+// }
+//
+// @mixin formConfiguration {
+//     // Чистит стили формы
+//     input {
+//         [type="search"]::-webkit-search-cancel-button{
+//             -webkit-appearance: none;
+//         }
+//         [type=time] {
+//             &::-webkit-outer-spin-button,
+//             &::-webkit-inner-spin-button {
+//                 -webkit-appearance: none;
+//                 margin: 0;
+//             }
+//             &::-webkit-clear-button {
+//                 display: none;
+//             }
+//             -moz-appearance: textfield;
+//             -moz-creation: searchfield;
+//             -webkit-appearance: none;
+//             &::-webkit-search-cancel-button {
+//                 -webkit-appearance: none;
+//                 display: none
+//             }
+//         }
+//         [type=submit]:not([value]) {
+//             outline: 2px solid red;
+//         }
+//
+//         @include placeholder{ color: inherit; }
+//     }
+//
+//     ::-ms-clear,
+//     ::-ms-reveal{
+//         display:none;
+//     }
+//
+//     fieldset {
+//         border:    0;
+//         padding:   0;
+//         margin:    0;
+//         min-width: auto;
+//         width:     100%;
+//     }
+//     legend {
+//         box-sizing:  border-box;
+//         color:       inherit;
+//         display:     table;
+//         max-width:   100%;
+//         padding:     0;
+//         white-space: normal;
+//         width: 100%
+//     }
+//     label {
+//         display:block;
+//     }
+//     textarea {
+//         resize: vertical
+//     }
+//     button, input, select, textarea {
+//         line-height: 1.2;
+//         font-size:   inherit;
+//         font-weight: inherit;
+//         color:       inherit;
+//     }
+//     button, label, input[type="submit"], input[type="reset"] {
+//         cursor:pointer;
+//     }
+// }
+//
+
+
+
+
+
+
+//
+// * {
+// 	position: relative;
+//
+// 	box-sizing: border-box;
+//
+// 	margin: 0;
+// 	padding: 0;
+// }
+//
+// html {
+// 	font-size: 10px;
+// }
+//
+
+//
+.view {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+
+	header {
+		flex-shrink: 0;
+	}
+
+	main {
+		flex-grow: 1;
+	}
+
+	footer {
+		flex-shrink: 0;
+	}
+}
+
+.container {
+  @include container;
+}
+
+
+
+
+//
+// @keyframes fadeIn {
+// 	from { opacity: 0 }
+// 	to   { opacity: 1 }
+// }
+
+//
+// @keyframes fadeOut {
+// 	from { opacity: 1 }
+// 	to   { opacity: 0 }
+// }
+
+//
+// .animation-fade-in {
+// 	animation: fadeIn 250ms ease-in-out both;
+// }
+//
+// .animation-fade-out {
+// 	animation: fadeOut 250ms ease-in-out both;
+// }

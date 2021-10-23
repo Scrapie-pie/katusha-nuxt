@@ -1,0 +1,1168 @@
+@use "sass:math";
+@use "sass:list";
+@use "sass:map";
+
+@import "_variables";
+@import "_functions";
+
+
+
+
+
+
+@mixin css-variables {
+	//$project-name: 'katusha';
+  $prefix: '--';
+
+	@each $key, $value in $variables {
+    @if is-map($value) {
+      //-- ↓ #{$key}:↓ ;
+      @each $map-key, $map-value in $value {
+  			#{$prefix}#{$key}_#{$map-key}: #{$map-value};
+  		}
+    }
+    @else {
+      #{$prefix}#{$key}: #{$value};
+    }
+	}
+}
+
+@mixin font-face-props($path, $font, $weight-value, $weight-name, $ext, $italic: false) { // remove $path; mb replace on func
+  $format: '';
+
+  @if $ext == 'woff' {
+    $format: 'woff';
+  } @else if $ext == 'woff2' {
+    $format: 'woff2';
+  } @else if $ext == 'ttf' {
+    $format: 'truetype';
+  } @else if $ext == 'otf' {
+    $format: 'opentype';
+  } @else if $ext == 'eot' {
+    $format: 'embedded-opentype'
+  } @else if $ext == 'svg' {
+    $format: 'svg';
+  }
+
+  font-family: $font;
+  font-display: auto;
+  unicode-range: U+000-5FF;
+  font-weight: $weight-value;
+  @if $italic {
+    font-style: italic;
+    src: local($font),
+         url('#{$path}/#{$font}/#{$font}-#{$weight-name}Italic.#{$ext}') format($format),
+  } @else {
+    font-style: normal;
+    src: local($font),
+         url('#{$path}/#{$font}/#{$font}-#{$weight-name}.#{$ext}') format($format),
+  }
+}
+
+@mixin setup-font($path, $font, $exts, $italic: false) { // Use prebuild.js first ; *remove $path*
+  $weights: (
+    100: 'Thin',
+    200: 'ExtraLight',
+    300: 'Light',
+    400: 'Regular',
+    500: 'Medium',
+    600: 'SemiBold',
+    700: 'Bold',
+    800: 'ExtraBold',
+    900: 'Black',
+  );
+
+  @each $ext in $exts {
+    @each $weight-value, $weight-name in $weights {
+      @font-face {
+        @include font-face-props($path, $font, $weight-value, $weight-name, $ext);
+        @if $italic {
+          @include font-face-props($path, $font, $weight-value, $weight-name, $ext, true);
+        }
+      }
+    }
+  }
+}
+
+@mixin to-responsive($css-map-or-prop: font-size, $min-size: null, $max-size: get-variable(font-size, base), $min-vw: get-variable(breakpoint, xs), $max-vw: get-variable(container)) {
+  // with one map handler will be simpler, won't need to put defaults in func calc-responsive
+  // and won't need to set to-unit separatly
+  // or handle map differently
+  // или похуй
+  // add min-vw min-vw result unit
+  @if type-of($css-map-or-prop) == 'string' {
+    $property: $css-map-or-prop;
+    $min-size: to-unit($min-size, 'px');
+    $max-size: to-unit($max-size, 'px');
+    $min-vw: to-unit($min-vw, 'px');
+    $max-vw: to-unit($max-vw, 'px');
+
+    @media (max-width: $min-vw) { // replace on custom
+      #{$property}: $min-size; // mb should be rem ?
+    }
+
+    @media (min-width: $min-vw) and (max-width: $max-vw) { // replace on custom
+      #{$property}: calc-responsive($min-size, $max-size, $min-vw, $max-vw);
+    }
+
+    @media (min-width: $max-vw) { // replace on custom
+      #{$property}: $max-size; // mb should be rem ?
+    }
+  } @else if type-of($css-map-or-prop) == 'map' {
+    $calculeted: ();
+
+    @each $property, $values in $css-map-or-prop {
+      @if type-of($values) == 'list' {
+        $pxValues: ();
+
+        @each $value in $values {
+          $pxValues: list.append($pxValues, to-unit($value, 'px'));
+        }
+
+        $calculeted: map.set($calculeted, $property, #{calc-responsive($pxValues...)});
+      } @else {
+         @error 'if u not want to use list as value then use to-unit out of to-responsive';
+      }
+    }
+
+    @media (max-width: $min-vw) { // replace on custom
+      @each $property, $value in $css-map-or-prop {
+        #{$property}: to-unit(nth($value, 1), 'px'); // mb replace on rem ?
+      }
+    }
+
+    @media (min-width: $min-vw) and (max-width: $max-vw) { // replace on custom
+      @each $property, $calcValue in $calculeted {
+        #{$property}: $calcValue;
+      }
+    }
+
+    @media (min-width: $max-vw) { // replace on custom
+      @each $property, $value in $css-map-or-prop {
+        #{$property}: to-unit(nth($value, 2), 'px'); // mb replace on rem ?
+      }
+    }
+  }
+}
+
+@mixin h($level, $color: null, $weight: false, $margin-bottom: null, $upper: false, $relative: true) {
+  $line-height: 1.22em;
+  $max-variable: get-variable(font-size, h#{$level});
+  $min-variable: get-variable(font-size, h#{$level}_mobile);
+
+  @if ($relative and $min-variable) {
+    $min: to-unit($min-variable, 'px');
+    $max: to-unit($max-variable, 'px');
+    @include to-responsive(font-size, $min, $max);
+  } @else {
+    font-size: $max-variable;
+  }
+
+
+  line-height: $line-height;
+
+  @if ($color) {
+    color: $color;
+  } @else {
+  }
+
+  @if ($margin-bottom) {
+    @if $margin-bottom == default {
+      margin-bottom: 1em; // must be global variable; mb remove?
+    } @else {
+      @if ($relative) {
+        @if (unit($margin-bottom) == 'em' or unit($margin-bottom) == 'rem') { // replace on to-responsive
+          margin-bottom: $margin-bottom;
+        } @else {
+          margin-bottom: to-fixed(to-unit($margin-bottom, 'em', to-unit($max-variable, 'px'))); // replace on to-responsive
+        }
+
+      } @else {
+        margin-bottom: $margin-bottom;
+      }
+    }
+  }
+
+  @if ($upper) {
+    text-transform: uppercase;
+  }
+
+  @if $weight {
+    @if type-of($weight) == 'number' {
+      font-weight: $weight;
+    } @else if $weight == bold {
+      font-weight: 700; // mb replace on something
+    }
+
+  } @else {
+    //font-weight: 400; // mb replace on something
+  }
+
+  // &:not(.font_bold) {
+  //   @if $bold {
+  //     font-weight: 700; // mb replace on something
+  //   } @else {
+  //     font-weight: 400; // mb replace on something
+  //   }
+  // }
+}
+
+
+
+
+
+
+@mixin container {
+  max-width: calc(#{get-variable(container)} + 30px);
+  width: 100%;
+  margin-right: auto;
+  margin-left:  auto;
+  padding-left:  15px;
+  padding-right: 15px;
+}
+
+
+
+@mixin grid($min:null, $max:null, $gap:30px, $fit: true) {
+  display: grid;
+  gap: $gap;
+
+  @if ($min and $max) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax($min, $max));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax($min, $max));
+    }
+  } @else if ($min) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax($min, 1fr));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax($min, 1fr));
+    }
+  } @else if ($max) {
+    @if ($fit) {
+      grid-template-columns: repeat(auto-fit, minmax(auto, $max));
+    } @else {
+      grid-template-columns: repeat(auto-fill, minmax(auto, $max));
+    }
+  }
+}
+
+
+@mixin flex-container($axis: row, $gap: null, $inline: false, $collapse: false) {
+  @if $inline {
+    display: inline-flex;
+  } @else {
+    display: flex;
+  }
+
+  flex-direction: $axis;
+
+  @if $gap {
+    @if type-of($gap) == 'list' {
+      @include to-responsive(grid-gap, $gap...)
+    } @else {
+      grid-gap: $gap;
+    }
+  }
+
+  @if $collapse {
+    & > * {
+      @if $axis == row {
+        margin-right: 0;
+        margin-left: 0;
+      } @else {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+@mixin flex-centralize($inline: false) {
+  @if $inline {
+    display: inline-flex;
+  } @else {
+    display: flex;
+  }
+
+  align-items: center;
+  justify-content: center;
+}
+
+// @mixin reversible-grid($cols, $reverse: false) {
+//   $odd: odd;
+//   $even: even;
+//
+//   @if $reverse {
+//     $odd: even,
+//     $even: odd,
+//   }
+//
+//   & > * {
+//     &:#{$odd} {
+//       grid-template-columns: 450px minmax(450px, 810px);
+//     }
+//     &:#{$even} {
+//       grid-template-columns: minmax(450px, 810px) 450px;
+//       order: -1;
+//     }
+//   }
+// }
+
+
+// @mixin media($viewport:null, $min:null, $max:null) {
+//   @if $viewport or $min and $max {
+//     @media (
+//       (min-width: get-variable(viewport, $viewport or $min)) and
+//       (max-width: get-variable(viewport, $viewport or $max) - 1px)
+//     ) {
+//       @content;
+//     }
+//   } @else if $min {
+//     @media (min-width: get-variable(viewport, $min)) {
+//       @content;
+//     }
+//   } @else if $max {
+//     @media (max-width: get-variable(viewport, $max) - 1px) {
+//       @content;
+//     }
+//   }
+// }
+
+@mixin wrapper() {}; // compare el__wrapper with el__container styles
+
+@mixin create-figure($size, $color: null, $radius: null, $border-size: null, $border-color: $color) {
+  width:  100%;
+  height: 100%;
+  min-width:  #{$size}px;
+  max-width:  #{$size}px;
+  min-height: #{$size}px;
+  max-height: #{$size}px;
+
+  @if $color {
+    background-color: $color;
+  }
+
+  @if $border-size {
+    border-width: #{$border-size}px;
+    border-style: solid;
+  }
+
+  @if $border-color {
+    border-color: $border-color;
+  }
+
+  @if $radius {
+    border-radius: $radius;
+  }
+}
+
+
+@mixin truncate($count) {
+  display: -webkit-box;
+  -webkit-line-clamp: $count;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+// @mixin passSelector ($child-selector: null) {
+//     // инициализирует стили, или передает потомку
+//     // обертка
+//     @if ($child-selector){& .#{$child-selector} {
+//         @content
+//     }}
+//     @else {
+//         @content
+//     }
+// }
+
+// @mixin fade-in { animation: animation-fade-in 350ms ease-in-out both }
+// @mixin fade-out { animation: animation-fade-out 350ms ease-in-out both }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@function fr-to-px($value, $col) { // move to bottom and combine with px-to-unit
+  @return $col * strip-unit($value);
+}
+
+@function to-smart-grid-value($value, $col) { // it's too
+  @if math.unit($value) == 'f' {
+    @return to-number(#{fr-to-px($value, $col)}px);
+  } @else {
+    @return to-number($value);
+  }
+}
+
+@function fix-scroll($value, $values-count) { // combine with smart-grid
+  //$scroll-fix: '((100vw - 100%) / #{$values-count})';
+  $scroll-fix: '((100vw - 100%) / #{$values-count})';
+
+  @return calc(#{$value} - var(--d));
+}
+
+@function get-minmax($value) { // refactor check types and units
+  @if type-of($value) == 'list' {
+    @return minmax(nth($value, 1), nth($value, 2));
+
+  } @else {
+    @return $value;
+  }
+}
+
+@function parse-minmax($list) { // refactor
+  $result: ();
+
+  @each $value in $list {
+    @if type-of($value) != 'list' {
+      //$value: split($value);
+    }
+
+    $result: list.append($result, get-minmax($value))
+  }
+
+  @return $result;
+}
+
+
+// @mixin recurse-viewport($min, $len, $gap: 30) { // len четное replace on count
+//   // mode even/odd
+//   // responsive-mode
+//   $padding: 15 * 2;
+//   $scroll: 17.5;
+//   $start-responsive: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+//
+//   @if ($len > 2) {
+//     $len: $len - 2;
+//     @media (max-width: #{$start-responsive}px) {
+//       grid-template-columns: repeat($len, 1fr);
+//     }
+//
+//     @include recurse-viewport($min, $len);
+//
+//   } @else {
+//     @media (max-width: #{$start-responsive}px) {
+//       grid-template-columns: 1fr;
+//     }
+//   }
+// }
+
+
+// @mixin recurse-viewport($min, $len, $gap: 30, $mode: 'even') { // len четное replace on count
+//
+//   $btw-gaps: $gap * ($len - 1);
+//   $padding: 15 * 2;
+//   $scroll: 17.5;
+//   $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+//   $treshold: 2;
+//
+//   @if $mode == 'even' {
+//     @if $len % 2 != 0 {
+//       $len: $len + 1;
+//     }
+//   } @else if $mode == 'odd' {
+//     $treshold: 3;
+//     @if $len % 2 == 0 {
+//       $len: $len + 1;
+//     }
+//   }
+//
+//   @if ($len > $treshold) {
+//     $len: $len - 2;
+//     @media (max-width: #{$viewport}px) {
+//       grid-template-columns: repeat($len, 1fr);
+//     }
+//
+//     @include recurse-viewport($min, $len);
+//
+//   } @else {
+//     @media (max-width: #{$viewport}px) {
+//       grid-template-columns: 1fr;
+//     }
+//   }
+// }
+
+
+// @function calc-viewport-templates($min, $len, $gap: 30, $mode: 'even') {
+//   $calculeted: ();
+//   $padding: 15 * 2;
+//   $scroll: 17.5;
+//   $btw-gaps: null;
+//   $viewport: null;
+//   $treshold: 2;
+//
+//   @if $mode == 'even' {
+//     @if $len % 2 != 0 {
+//       $len: $len + 1;
+//     }
+//   } @else if $mode == 'odd' {
+//     $treshold: 3;
+//     @if $len % 2 == 0 {
+//       $len: $len + 1;
+//     }
+//   }
+//
+//   @while $len > $treshold {
+//     $btw-gaps: $gap * ($len - 1);
+//     $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+//     $len: $len - 2;
+//     $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+//   }
+//
+//   $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+//   $calculeted: append($calculeted, ($viewport, 1fr, $len));
+//
+//   @return $calculeted;
+// }
+
+// @function calc-viewport-templates($min, $len, $gap: 30, $mode: 'even') {
+//
+//   // $scroll: '(100vw - 100%)';
+//   // --d: #{$scroll} / #{$len};
+//
+//
+//   $calculeted: ();
+//   $padding: 15 * 2;
+//   $scroll: 17.5;
+//   $btw-gaps: null;
+//   $viewport: null;
+//   $treshold: 2;
+//
+//   @while $len > $treshold {
+//     $btw-gaps: $gap * ($len - 1);
+//     $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+//
+//     @if $mode == 'even' {
+//       @if $len % 2 != 0 {
+//         $len: $len + 1;
+//       }
+//     } @else if $mode == 'odd' {
+//       @if $len % 2 == 0 {
+//         $len: $len + 1;
+//       }
+//       $treshold: 3;
+//     }
+//
+//     $len: $len - 2;
+//     $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+//   }
+//
+//   $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+//   $calculeted: append($calculeted, ($viewport, 1fr, $len));
+//
+//   @return $calculeted;
+// }
+
+@function calc-viewport-templates($min: null, $len, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd'
+
+  // $scroll: '(100vw - 100%)';
+  // --d: #{$scroll} / #{$len};
+
+  // grid-template-columns: repeat(12, 1fr);
+  //
+  // & > * {
+  //   grid-column: span 4;
+  //   min-width: 400px;
+  // }
+
+  $scroll: '(100vw - 100%)';
+
+
+  @if $min == null {
+    $min: (strip-unit(get-variable(container)) - ($gap * $len - 1)) / $len * 0.75;
+  }
+
+
+  //$min: fix-scroll($min, $len);
+
+  $calculeted: ();
+  $padding: 15 * 2;
+  $scroll: 17.5;
+  $btw-gaps: null;
+  $viewport: null;
+  $treshold: 2;
+
+  @while $len > $treshold {
+    $btw-gaps: $gap * ($len - 1);
+    //$viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+    $viewport: ($min * $len) + $btw-gaps + $padding;
+    //$viewport: ($min * $len) + $btw-gaps + $padding + #{$scroll};
+    //$viewport: calc((100vw - 100%) * 10000);
+
+    @if $mode {
+      @if $mode == 'even' {
+        @if $len % 2 != 0 {
+          $len: $len + 1;
+        }
+      } @else if $mode == 'odd' {
+        @if $len % 2 == 0 {
+          $len: $len + 1;
+        }
+        $treshold: 3;
+      }
+
+      $len: $len - 2;
+    } @else {
+      $len: $len - 1;
+    }
+
+    $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+  }
+
+  $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
+  $calculeted: append($calculeted, ($viewport, 1fr, $len));
+
+  @return $calculeted;
+}
+
+
+
+@mixin test-st-vt($min, $len, $gap: 30, $mode: 'even') {
+  $stretch: 'all';
+
+  @if $stretch == 'all' {
+    $i: 1;
+    $kaka: calc-viewport-templates($min, $len, $gap, $mode);
+
+    @if $mode == 'even' {
+
+    } @else {
+
+    }
+
+    $len: len($kaka);
+    @each $viewport, $t, $count in $kaka {
+      $min-vw: $i + 1; // refactor
+      @if ($min-vw > $len) {
+        $min-vw: 0; // refactor
+      } @else {
+        $min-vw: nth(nth($kaka, $min-vw), 1); // refactor
+      }
+
+
+      @media (min-width: #{$min-vw}px) and (max-width: #{$viewport}px) {
+      //@media (max-width: #{$viewport}px) {
+        zalupa: $min-vw;
+        //$col-count: 8;
+
+        //$col-stretch-count: 4;
+        background-color: red;
+
+
+        $all-colonok-tianetsia: $count / 2; // 4
+
+        $te: $all-colonok-tianetsia + 1;
+
+        //$be:
+
+        // & > *:nth-child(4n):nth-last-child(4n - 1) ~ *:nth-last-child(-n + 2) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(6n):nth-last-child(6n - 2) ~ *:nth-last-child(-n + 3) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(8n):nth-last-child(8n - 3) ~ *:nth-last-child(-n + 4) {
+        //   grid-column: span 2;
+        // }
+
+
+        // 10 - 4
+
+        // & > *:nth-child(10n):nth-last-child(10n - 6) ~ *:nth-last-child(-n + 3) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(8n):nth-last-child(8n - 4) ~ *:nth-last-child(-n + 3) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(6n):nth-last-child(4) ~ *:nth-last-child(-n + 3) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(8n):nth-last-child(4) ~ *:nth-last-child(-n + 3) {
+        //   grid-column: span 2;
+        // }
+
+        // & > *:nth-child(#{$count}n):nth-last-child(#{$te}) ~ *:nth-last-child(-n + #{$all-colonok-tianetsia}) {
+        //   //grid-column: span 2;
+        //   $po-colonke: 2;
+        //   grid-column: span #{$po-colonke};
+        // }
+
+        & > *:nth-child(#{$count}n):nth-last-child(#{$te}) ~ * {
+          //grid-column: span 2;
+          $po-colonke: $count / ($count / 2);
+          // count / 2 = 4 колонки
+          // count / 4 = спан
+          grid-column: span #{$po-colonke};
+        }
+
+      }
+
+      $i: $i + 1;
+    }
+  }
+}
+
+@mixin stretch-last($min, $viewport, $mode: 'even') { // len четное
+  $padding: 15 * 2;
+  $scroll: 17.5;
+
+  //$len: 2;
+
+  // @if $mode == 'even' {
+  //   @if $len % 2 != 0 {
+  //     $len: $len - 1;
+  //   } @else {
+  //     $len: $len + 1;
+  //   }
+  // } @else if $mode == 'odd' {
+  //   $treshold: 3;
+  //
+  //   @if $len % 2 == 0 {
+  //     $len: $len + 1;
+  //   } @else {
+  //     $len: $len - 1;
+  //   }
+  // }
+
+  $len: $len + 1;
+
+  //$viewport: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+
+  @media (max-width: #{$viewport}px) {
+    & > div {
+      &:last-child {
+        grid-column: 1/-1;
+      }
+      &:nth-child(2n + 2) {
+        grid-column: auto;
+      }
+    }
+  }
+}
+
+
+// @mixin stretch-last($min, $len, $gap: 30, $mode: 'even') { // len четное
+//   $padding: 15 * 2;
+//   $scroll: 17.5;
+//
+//   //$len: 2;
+//
+//   // @if $mode == 'even' {
+//   //   @if $len % 2 != 0 {
+//   //     $len: $len - 1;
+//   //   } @else {
+//   //     $len: $len + 1;
+//   //   }
+//   // } @else if $mode == 'odd' {
+//   //   $treshold: 3;
+//   //
+//   //   @if $len % 2 == 0 {
+//   //     $len: $len + 1;
+//   //   } @else {
+//   //     $len: $len - 1;
+//   //   }
+//   // }
+//
+//   $len: $len + 1;
+//
+//   $viewport: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+//
+//   @media (max-width: #{$viewport}px) {
+//     & > div {
+//       &:last-child {
+//         grid-column: 1/-1;
+//       }
+//       &:nth-child(2n + 2) {
+//         grid-column: auto;
+//       }
+//     }
+//   }
+// }
+
+@mixin smart-grid($list: null, $len: null, $stretch: true) { // replace on func
+
+
+
+  @if $len == null and $list {
+    $len: len($list);
+  } @else if $len and $list == null {
+
+  }
+
+  $scroll: '(100vw - 100%)';
+  --d: #{$scroll} / #{$len};
+
+  $max-width: strip-unit(get-variable(container)); // test without container
+  $col: math.div($max-width, 12);
+  $gap: 30;
+
+
+  $templates: ();
+  $mins: ();
+
+  $templates-scroll-fix: ();
+  $mins-scroll-fix: ();
+
+  $padding: 15;
+
+  //@error $len;
+  @if $list {
+    @each $value in $list {
+
+      @if (type-of($value) == 'list') {
+        $min: to-smart-grid-value(nth($value, 1), $col);
+
+        $max: to-smart-grid-value(nth($value, 2), $col);
+        $mins: append($mins, $min);
+
+        $mins-scroll-fix: append($mins, fix-scroll($min, $len));
+        $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+
+        $templates: append($templates, minmax($min, $max));
+
+      } @else {
+        $value: to-smart-grid-value($value, $col);
+        $mins: append($mins, $value);
+
+        //$mins-scroll-fix: append($mins, fix-scroll($value, $len));
+        //$templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($value, $len), $max));
+
+        $templates: append($templates, $value);
+      }
+    }
+  }
+
+
+  // @error $mins;
+
+  //$mins: sum($mins);
+
+
+  //$padding: 0;
+
+  width: 100%;
+  //max-width: #{$max-width}px; // scroll fix
+  //max-width: calc(#{$max-width}px + 30px); // scroll fix
+
+  display: grid;
+  //grid-template-columns: repeat(auto-fit, #{$templates});
+  //grid-template-columns: repeat($len, #{$templates});
+  //grid-template-columns: repeat(12, 1fr);
+
+  @if $stretch {
+    grid-template-columns: repeat(12, 1fr);
+    & > * {
+      @if 12 % $len == 0 {
+        grid-column: span (12 / $len);
+      } @else {
+        @error 'ЗДАРОВА';
+      }
+    }
+
+
+  } @else {
+    grid-template-columns: repeat($len, 1fr);
+  }
+
+  grid-column-gap: #{$gap}px;
+  justify-content: space-between;
+  margin: 0 auto;
+
+  @if $padding {
+    padding-left: #{$padding}px;
+    padding-right: #{$padding}px;
+  } @else {
+    $padding: 0;
+  }
+
+  //$start-responsive: sum($mins) + $gap * ($len - 1) + ($padding * 2);
+  //$fix-scroll-responsive: $start-responsive + 30;
+
+
+
+  // add param even/odd
+  // & > div {
+  //   &:last-child {
+  //     grid-column: 1/-1;
+  //   }
+  //   &:nth-child(2n + 2) {
+  //     grid-column: auto;
+  //   }
+  // }
+
+
+  // grid-template-rows: auto;
+  //
+  // grid-column: span 4;
+  //   min-width: 320px;
+  //
+  // grid-column: span 8/-1;
+  //     grid-row: 2/span 1;
+
+  // @media (max-width: #{$fix-scroll-responsive}px) {
+  //   grid-template-columns: repeat(auto-fit, #{$templates-scroll-fix});
+  // }
+  //
+  //
+  //
+
+  //@include recurse-viewport(strip-unit(nth(nth($list, 1), 1)), $len);
+
+
+  // @each $viewport, $template in calc-viewport-templates(strip-unit(nth(nth($list, 1), 1)), $len) {
+  //
+  //   @media (max-width: #{$viewport}px) {
+  //     grid-template-columns: $template;
+  //     //add param even/odd
+  //
+  //   }
+  // }
+
+  @if $list == null and $len {
+
+
+
+    @each $viewport, $template, $resp-len in calc-viewport-templates($len: $len, $stretch: $stretch) {
+      //$i: 1;
+      // move to calc-viewport-templates
+      @media (max-width: #{$viewport}px) {
+        //grid-template-columns: $template;
+
+        & > * {
+          @if 12 % $len == 0 {
+            grid-column: span (12 / $resp-len);
+            fucking: 12 % $len == 0;
+          } @else {
+            @while 12 % $len != 0 {
+              $resp-len: $resp-len - 1;
+            }
+            @debug '#{$viewport}px: Не знаю, как разместить #{$resp-len} элементов в сетку из 12, размещаю по #{$resp-len}';
+            grid-column: span (12 / $resp-len);
+            defucking: (12 / $resp-len);
+          }
+
+
+
+        }
+        //add param even/odd
+        //$i: $i + 1;
+      }
+    }
+  } @else {
+    @each $viewport, $template in calc-viewport-templates(strip-unit(nth(nth($list, 1), 1)), $len) {
+
+      @media (max-width: #{$viewport}px) {
+        grid-template-columns: $template;
+        //add param even/odd
+
+      }
+    }
+  }
+
+
+
+  //grid-template-columns: repeat(12, minmax(calc((100% - (100vw - 100%)) / 3), 1fr));
+  //grid-template-columns: repeat(12, minmax(calc(100% / 3), 4fr));
+  // grid-template-columns: repeat(12, 1fr);
+  //
+  // & > * {
+  //   grid-column: span 4;
+  //   min-width: 400px;
+  // }
+
+  //@include test-st-vt(strip-unit(nth(nth($list, 1), 1)), $len);
+
+
+  //@include stretch-last(strip-unit(nth(nth($list, 1), 1)), $len);
+
+
+  // @media (max-width: #{$start-responsive}px) {
+  //   //grid-template-columns: 1fr;
+  //   @if ($len > 2) {
+  //
+  //
+  //
+  //
+  //   } @else {
+  //     grid-template-columns: 1fr;
+  //   }
+  // }
+
+  & > * {
+    background-color: #6ba9fb;
+  }
+}
+
+
+
+// @mixin smart-grid($list) { // replace on func
+//   $len: len($list);
+//   $scroll: '(100vw - 100%)';
+//   --d: #{$scroll} / #{$len};
+//
+//   $max-width: strip-unit(get-variable(container)); // test without container
+//   $col: math.div($max-width, 12);
+//   $gap: 30;
+//
+//
+//   $templates: ();
+//   $mins: ();
+//
+//   $templates-scroll-fix: ();
+//   $mins-scroll-fix: ();
+//
+//   $padding: 15;
+//
+//   @each $value in $list {
+//
+//     @if (type-of($value) == 'list') {
+//       $min: to-smart-grid-value(nth($value, 1), $col);
+//
+//       $max: to-smart-grid-value(nth($value, 2), $col);
+//       $mins: append($mins, $min);
+//
+//       $mins-scroll-fix: append($mins, fix-scroll($min, $len));
+//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+//
+//       $templates: append($templates, minmax($min, $max));
+//
+//     } @else {
+//       $value: to-smart-grid-value($value, $col);
+//       $mins: append($mins, $value);
+//       $templates: append($templates, $value);
+//     }
+//   }
+//
+//   // @error $mins;
+//
+//   //$mins: sum($mins);
+//
+//
+//   //$padding: 0;
+//
+//   width: 100%;
+//   max-width: #{$max-width}px; // scroll fix
+//   //max-width: calc(#{$max-width}px + 30px); // scroll fix
+//
+//   display: grid;
+//   grid-template-columns: repeat(auto-fit, #{$templates});
+//   grid-column-gap: #{$gap}px;
+//   justify-content: space-between;
+//   margin: 0 auto;
+//
+//   @if $padding {
+//     padding-left: #{$padding}px;
+//     padding-right: #{$padding}px;
+//   } @else {
+//     $padding: 0;
+//   }
+//
+//   $start-responsive: sum($mins) + $gap * ($len - 1) + ($padding * 2);
+//   $fix-scroll-responsive: $start-responsive + 30;
+//
+//   @media (max-width: #{$fix-scroll-responsive}px) {
+//     grid-template-columns: repeat(auto-fit, #{$templates-scroll-fix});
+//   }
+//
+//
+//
+//   @media (max-width: #{$start-responsive}px) {
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $len)))));
+//     grid-template-columns: 1fr;
+//   }
+//
+//   & > * {
+//     background-color: #6ba9fb;
+//   }
+// }
+
+
+
+// @mixin smart-grid($list) { // replace on func
+//   $max-width: strip-unit(get-variable(container));
+//   $col: math.div($max-width, 12);
+//   $gap: 30;
+//   $len: len($list);
+//
+//   $templates: ();
+//   $templates-scroll-fix: ();
+//   $mins: ();
+//   $mins-scroll-fix: ();
+//
+//   @each $value in $list {
+//     @if (type-of($value) == 'list') {
+//       $min: to-smart-grid-value(nth($value, 1), $col);
+//       $max: to-smart-grid-value(nth($value, 2), $col);
+//       $mins: append($mins, $min);
+//       $mins-scroll-fix: append($mins, fix-scroll($min, $len));
+//       $templates: append($templates, minmax($min, $max));
+//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+//
+//     } @else {
+//       $value: to-smart-grid-value($value, $col);
+//       $mins: append($mins, $value);
+//       $mins-scroll-fix: append($mins, fix-scroll($value, $len));
+//       $templates: append($templates, $value);
+//       $templates-scroll-fix: append($templates-scroll-fix, fix-scroll($value, $len));
+//     }
+//   }
+//
+//   //$mins: sum($mins);
+//
+//   width: 100%;
+//   max-width: #{$max-width}px; // scroll fix
+//   //max-width: calc(#{$max-width}px + 30px); // scroll fix
+//   //padding-left: 15px;
+//   //padding-right: 15px;
+//   display: grid;
+//   grid-template-columns: repeat(auto-fit, #{$templates});
+//   grid-column-gap: #{$gap}px;
+//   justify-content: space-between;
+//   margin: 0 auto;
+//
+//
+//
+//   //overflow: hidden;
+//
+//   //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//
+//   @media (max-width: #{$max-width} + 'px') {
+//     grid-template-columns: repeat(auto-fit, #{$templates-scroll-fix});
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//   }
+//
+//   @media (max-width: sum($mins) + $gap * ($len - 1) + 'px') { // refactor count > 1
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $len)))));
+//     grid-template-columns: 1fr;
+//   }
+//
+//   & > * {
+//     background-color: #6ba9fb;
+//   }
+// }
