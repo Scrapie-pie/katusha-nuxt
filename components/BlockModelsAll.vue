@@ -46,8 +46,17 @@ export default {
     //grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     //@include smart-grid([(100px 1fr)], 12);
     //@include smart-grid([(160px 1fr)], 8);
-    @include smart-grid($len: 12);
     //@include smart-grid($len: 8);
+
+
+    //@include smart-grid(8);
+    //@include smart-grid((180px, 8));
+    @include smart-grid(200px);
+    //@include smart-grid((180px, 200px));
+    //@include smart-grid((auto, 200px));
+    //@include smart-grid((180px, auto));
+    //@include smart-grid((8, 200px));
+    //@include smart-grid((180px, 8, 200px));
 
   }
 }

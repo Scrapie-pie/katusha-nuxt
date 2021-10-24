@@ -51,7 +51,7 @@
       $result: $result * 10 + map-get($numbers, $character);
     } @else {
       $digits: $digits * 10;
-      $result: $result + map-get($numbers, $character) / $digits;
+      $result: $result + math.div(map-get($numbers, $character), $digits);
     }
   }
 
@@ -75,7 +75,7 @@
   	} @else if($to-unit == 'per') {
   		$result: percentage(math.div($value, $base-font));
   	} @else if $to-unit == 'vw' or $to-unit == 'vh' { // is this need ?
-      $result: $result * to-number(#{100}#{$to-unit}) / $max-viewport-for-vw-vh;
+      $result: $result * math.div(to-number(#{100}#{$to-unit}), $max-viewport-for-vw-vh);
     }
   } @else if $source-unit == 'em' or $source-unit == 'rem' { // should be EM computed to parent block instead of to base font ? check it later
     @if ($to-unit == "px") {
@@ -149,7 +149,7 @@
 @function to-fixed($float, $digits: 4) {
   $pow: math.pow(10, $digits);
 
-  @return round($float * $pow) / $pow;
+  @return math.div(round($float * $pow), $pow);
 }
 
 @function repeater($character, $n) {

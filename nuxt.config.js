@@ -21,9 +21,9 @@ export default {
 
 
 
-  globals: {
-    id: () => `katusha`,
-},
+  // globals: {
+  //   id: () => `katusha`,
+  // },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
