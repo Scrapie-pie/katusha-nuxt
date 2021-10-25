@@ -178,3 +178,11 @@
     }
     @return $list;
 }
+
+@function get-nth($list, $n) {
+  @if $n > len($list) {
+    @return null;
+  } @else {
+    @return nth($list, $n);
+  }
+}

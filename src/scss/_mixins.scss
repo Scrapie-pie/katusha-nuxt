@@ -746,46 +746,15 @@
 //   }
 // }
 
-@function calc-viewport-templates($value, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd'
+@function calc-viewport-templates($value, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
   // $scroll: '(100vw - 100%)';
   // --d: #{$scroll} / #{$len};
 
   /*
     Если нет $stretch - тянет, как и тянул. Если есть, находим нок ряда чисел - устанавливаем в родительскую сетку, тянем колонки.
+
+    $min также должен принимать коэффициент типа 0.75
   */
-
-  $min: null;
-  $len: null;
-  $max: null;
-
-  @if type-of($value) == 'number' {
-    @if unit($value) == '' {
-      $len: $value;
-    } @else {
-      $max: $value;
-    }
-  } @else if type-of($value) == 'list' {
-    $min: strip-unit(nth($value, 1));
-    $len: nth($value, 2);
-    @debug $min;
-    @debug $len;
-  }
-
-  @if $min == null { // 'auto'
-    $min: math.div(strip-unit(get-variable(container)) - ($gap * $len - 1), $len) * 0.75;
-  }
-
-  @if $max && $len {
-
-  } @else if $max {
-
-  } @else if $len {
-
-  }
-
-
-
-  //$min: fix-scroll($min, $len);
 
   $calculeted: ();
   $padding: 15 * 2;
@@ -793,6 +762,145 @@
   $btw-gaps: null;
   $viewport: null;
   $treshold: 2;
+  $container: strip-unit(get-variable(container));
+
+  // Если указано просто число колонок, то $min: 'auto'
+  // То же самое, как ('auto', 8) например
+  // В обшем, если не указан $max, то $min по дефолту как 'auto'
+  // Иначе по дефолту $min: $max
+  // Можно добавить, Если указано число колонок, $max тянуть
+
+  $len: null;
+  $min: null;
+  $max: null;
+
+  @if type-of($value) == 'number' {
+    @if unit($value) == '' {
+      $len: $value;
+    } @else {
+      $max: strip-unit($value);
+    }
+  } @else if type-of($value) == 'list' {
+
+    @if len($value) == 3 {
+      $min: nth($value, 1);
+
+      @if type-of($min) == 'number' {
+        $min: strip-unit($min);
+      }
+
+      $len: nth($value, 2);
+      $max: strip-unit(nth($value, 3));
+    } @else if len($value) == 2 {
+
+      $first: nth($value, 1);
+      $second: nth($value, 2);
+
+      @if type-of($first) == 'number' {
+        @if unit($first) == '' {
+          $len: $first;
+        } @else {
+          $min: strip-unit($first);
+        }
+      } @else {
+        $min: $first;
+      }
+
+      @if $len {
+        //$max: $second;
+      } @else {
+        @if unit($second) == '' {
+          $len: $second;
+        } @else {
+          $max: strip-unit($second);
+        }
+      }
+
+
+
+    } @else if len($value) == 1 {
+      $value: nth($value, 1);
+      @if unit($value) == '' {
+        $len: $value;
+      } @else {
+        $max: strip-unit($value);
+      }
+    }
+
+  }
+
+  @if $min == null {
+    @if $max == null {
+      $min: 'auto';
+    } @else {
+      $min: strip-unit($max);
+    }
+  }
+
+
+
+
+
+  // везде условие с минимумом
+
+  @if $max and $len {
+
+    //$min: $max;
+    $max: to-number($max + 'px');
+
+  } @else if $max {
+    $len: 1;
+
+    @while (($max + $gap) * ($len + 1)) - $gap < $container {
+      $len: $len + 1;
+    }
+
+    // @if type-of($value) == 'list' and len($value) == 1 { // @if $min
+    //   $min: $max;
+    // }
+
+    $max: to-number($max + 'px');
+
+  } @else if $len {
+    $max: 1fr;
+  }
+
+  $min-k: 0.75;
+
+
+  @if $min == 'auto' { // 'auto'
+    @if $max != 1fr {
+      $min: strip-unit($max) * $min-k;
+    } @else {
+      $min: math.div($container - ($gap * ($len - 1)), $len) * $min-k
+    }
+
+  } @else if $min == null {
+
+  }
+
+
+
+  //$min: fix-scroll($min, $len);
+
+  $temp: null;
+
+  @if unit($max) == 'px' {
+    //$temp: fix-scroll($max, $len);
+    $temp: $max;
+  } @else {
+    $temp: 1fr;
+  }
+
+  @if $min {
+    @if $min == strip-unit($max) {
+      $temp: $max;
+    } @else {
+      $temp: minmax(#{$min}px, $temp);
+    }
+  }
+
+  $calculeted: append($calculeted, (null, repeat($len, $temp), $len));
 
   @while $len > $treshold {
     $btw-gaps: $gap * ($len - 1);
@@ -818,11 +926,37 @@
       $len: $len - 1;
     }
 
-    $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+    $temp: null;
+
+    @if unit($max) == 'px' {
+      //$temp: fix-scroll($max, $len);
+      $temp: $max;
+    } @else {
+      $temp: 1fr;
+    }
+
+    @if $min {
+      @if $min == strip-unit($max) {
+        $temp: $max;
+      } @else {
+        $temp: minmax(#{$min}px, $temp);
+      }
+    }
+
+    $calculeted: append($calculeted, ($viewport, repeat($len, $temp), $len)); // $max with fix-scroll isnstead of 1fr
+  }
+
+  $temp: null;
+
+  @if unit($max) == 'px' {
+    //$temp: fix-scroll($max, 1);
+    $temp: $max;
+  } @else {
+    $temp: 1fr;
   }
 
   $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
-  $calculeted: append($calculeted, ($viewport, 1fr, $len));
+  $calculeted: append($calculeted, ($viewport, 1fr, $len)); // $max with fix-scroll isnstead of 1fr
 
   @return $calculeted;
 }
@@ -857,6 +991,7 @@
       $len: nth($value, 2);
     }
   }
+
 
 
   $scroll: '(100vw - 100%)';
@@ -920,7 +1055,7 @@
   //grid-template-columns: repeat(12, 1fr);
 
   @if $stretch {
-    grid-template-columns: repeat(12, 1fr); // Тогда Нок вместо 12
+    //grid-template-columns: repeat(12, 1fr); // Тогда Нок вместо 12
     & > * {
       @if 12 % $len == 0 {
         grid-column: span (12 / $len);
@@ -931,7 +1066,7 @@
 
 
   } @else {
-    grid-template-columns: repeat($len, 1fr);
+    //grid-template-columns: repeat($len, 1fr);
   }
 
   grid-column-gap: #{$gap}px;
@@ -992,13 +1127,39 @@
 
 
 
+  $calculeted: calc-viewport-templates($value);
+  $i: 1;
+  @each $viewport, $template, $resp-len in $calculeted {
 
-
-  @each $viewport, $template, $resp-len in calc-viewport-templates($value) {
-    //$i: 1;
     // move to calc-viewport-templates
-    @media (max-width: #{$viewport}px) {
-      grid-template-columns: $template;
+
+    // refactor min max +1|-1 viewports
+
+    @if $i == 1 {
+      $viewport-min: nth(nth($calculeted, 2), 1);
+
+      @media (min-width: #{$viewport-min}px) {
+        grid-template-columns: $template;
+      }
+
+    } @else if $i != len($calculeted) {
+      $viewport-min: nth(nth($calculeted, $i + 1), 1);
+      $viewport-max: $viewport;
+
+      @media (min-width: #{$viewport-min}px) and (max-width: #{$viewport-max}px) {
+        grid-template-columns: $template;
+      }
+    } @else {
+
+        $viewport-max: $viewport;
+
+        @media (max-width: #{$viewport-max}px) {
+          grid-template-columns: $template;
+        }
+    }
+
+    $i: $i + 1;
+
 
       // & > * {
       //   @if 12 / $resp-len != math.floor(12 / $resp-len) {
@@ -1031,7 +1192,7 @@
       //}
       //add param even/odd
       //$i: $i + 1;
-    }
+
   }
 
 
