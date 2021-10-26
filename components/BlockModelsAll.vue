@@ -44,22 +44,23 @@ export default {
     gap: 30px 35px;
     background-color: blue;
 
-    //@include smart-grid(9); //work
+    //@include smart-grid(8); //work
     //@include smart-grid((110px, 9)); //work
     //@include smart-grid((9, 100px)); //work
     //@include smart-grid(200px); //work
     //@include smart-grid((130px, 200px)); // work
     //@include smart-grid((100px, 5, 200px)); // work
 
-    @include smart-grid((auto, 7)); //work
+    //@include smart-grid((auto, 7)); //work
     //@include smart-grid((auto, 200px)); // work
     //@include smart-grid((auto, 5, 200px)); // work
 
-    //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую
-    // для $min, добавить по коэффициенту
+    //@include smart-grid((0.5, 9)); //work
+    //@include smart-grid((0.5, 180px)); //work
+    //@include smart-grid((0.5, 5, 200px)); // work
 
-    //@include smart-grid((9, auto)); //
-
+    //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
+    @include smart-grid((100px, 12, 12/5));
   }
 }
 </style>

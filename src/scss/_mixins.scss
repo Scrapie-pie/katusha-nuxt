@@ -423,13 +423,28 @@
   @return calc(#{$value} - var(--d));
 }
 
-@function get-minmax($value) { // refactor check types and units
-  @if type-of($value) == 'list' {
-    @return minmax(nth($value, 1), nth($value, 2));
+@function to-minmax($values...) {
+  @if len($values) == 1 {
+    $value: nth($values, 1);
 
-  } @else {
-    @return $value;
+    @if type-of($value) != 'list' {
+      @return $value;
+    }
+
+    $values: $value;
   }
+
+  $min: nth($values, 1);
+  $max: nth($values, 2);
+
+  @if $min == $max or $min == null and $max {
+    @return $max;
+  } @else if $min and $max == null {
+    @return $min;
+  }
+
+
+  @return minmax($min, $max);
 }
 
 @function parse-minmax($list) { // refactor
@@ -440,7 +455,7 @@
       //$value: split($value);
     }
 
-    $result: list.append($result, get-minmax($value))
+    $result: list.append($result, to-minmax($value))
   }
 
   @return $result;
@@ -747,28 +762,27 @@
 // }
 
 @function calc-viewport-templates($value, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
+  // $mode: 'twelve-grid', 'twelve-per', 'twelve-px'
+  // $mode must be list
+
   // $scroll: '(100vw - 100%)';
   // --d: #{$scroll} / #{$len};
 
   /*
     Если нет $stretch - тянет, как и тянул. Если есть, находим нок ряда чисел - устанавливаем в родительскую сетку, тянем колонки.
 
-    $min также должен принимать коэффициент типа 0.75
+    Тянуть при mode Либо в процентах, либо grid-column колонок
   */
 
-  $calculeted: ();
+  $calculeted: ();  // Переделать в мапу
+  $container: strip-unit(get-variable(container));
   $padding: 15 * 2;
   $scroll: 17.5;
   $btw-gaps: null;
   $viewport: null;
+  $grid-column: null;
   $treshold: 2;
-  $container: strip-unit(get-variable(container));
-
-  // Если указано просто число колонок, то $min: 'auto'
-  // То же самое, как ('auto', 8) например
-  // В обшем, если не указан $max, то $min по дефолту как 'auto'
-  // Иначе по дефолту $min: $max
-  // Можно добавить, Если указано число колонок, $max тянуть
+  $columns-count: null;
 
   $len: null;
   $min: null;
@@ -782,132 +796,140 @@
     }
   } @else if type-of($value) == 'list' {
 
-    @if len($value) == 3 {
-      $min: nth($value, 1);
+    $first:  get-nth($value, 1);
+    $second: get-nth($value, 2);
+    $third:  get-nth($value, 3);
 
-      @if type-of($min) == 'number' {
-        $min: strip-unit($min);
+    @if $second == null {
+
+      @if unit($first) == '' {
+        $len: $first;
+      } @else {
+        $max: $first;
       }
 
-      $len: nth($value, 2);
-      $max: strip-unit(nth($value, 3));
-    } @else if len($value) == 2 {
-
-      $first: nth($value, 1);
-      $second: nth($value, 2);
+    } @else if $third == null {
 
       @if type-of($first) == 'number' {
-        @if unit($first) == '' {
+        @if unit($first) == '' and $first >= 1 {
           $len: $first;
         } @else {
-          $min: strip-unit($first);
+          $min: $first;
         }
       } @else {
         $min: $first;
       }
 
       @if $len {
-        //$max: $second;
+        // Тут типа тянуть если по колонкам
+        $max: $second;
+        // Тут типа тянуть если по колонкам
       } @else {
         @if unit($second) == '' {
           $len: $second;
         } @else {
-          $max: strip-unit($second);
+          $max: $second;
         }
       }
-
-
-
-    } @else if len($value) == 1 {
-      $value: nth($value, 1);
-      @if unit($value) == '' {
-        $len: $value;
-      } @else {
-        $max: strip-unit($value);
-      }
+    } @else {
+      $min: $first;
+      $len: $second;
+      $max: $third;
+      // @if unit($third) == '' {
+      //   $grid-column: $third;
+      // } @else {
+      //   $max: $third;
+      // }
     }
-
   }
+
+  @if $max and unit($max) == '' { // refactor
+    $mode: 'twelve-per';
+  }
+
+  // Минимум сейчас высчитывать по columns-count,
+  // Хотя columns-count заменить на len, и len на что-то
+  //
 
   @if $min == null {
-    @if $max == null {
+    @if $max == null or unit($max) == '' {
       $min: 'auto';
     } @else {
-      $min: strip-unit($max);
+      $min: $max;
     }
   }
-
-
-
-
-
-  // везде условие с минимумом
 
   @if $max and $len {
 
-    //$min: $max;
-    $max: to-number($max + 'px');
+    //Возвращать не число темплейта, а число тянущихся колонок, как для 12
+    @if $mode == 'twelve-per' {
+      $without-gaps: $container - ($gap * ($len - 1));
+      $without-gaps: $without-gaps * 0.01;
+      $width-per: 100% - $without-gaps;
+      //@debug $width-per;
+      //$max: math.div(100% - percentage($without-gaps), $len) * $max; // - gaps
+
+      //$columns-count: $len;
+      $columns-count: math.div($len, $max);
+      $len: $columns-count;
+
+
+
+
+      $max: math.div($width-per, $columns-count); // - gaps
+
+
+    } @else {
+      //$columns-count: $len;
+    }
+
+    //$max: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
 
   } @else if $max {
     $len: 1;
+    $unit: unit($max);
+    $max: strip-unit($max);
 
     @while (($max + $gap) * ($len + 1)) - $gap < $container {
       $len: $len + 1;
     }
 
-    // @if type-of($value) == 'list' and len($value) == 1 { // @if $min
-    //   $min: $max;
-    // }
-
-    $max: to-number($max + 'px');
+    $max: to-number($max + $unit);
 
   } @else if $len {
     $max: 1fr;
   }
 
-  $min-k: 0.75;
 
 
-  @if $min == 'auto' { // 'auto'
+  @if $min == 'auto' or type-of($min) == 'number' and unit($min) == '' {
+    $min-k: 0.75;
+
+    @if $min != 'auto' {
+      $min-k: $min;
+      @debug $min-k;
+    }
+
     @if $max != 1fr {
       $min: strip-unit($max) * $min-k;
     } @else {
-      $min: math.div($container - ($gap * ($len - 1)), $len) * $min-k
+      $min: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
     }
 
-  } @else if $min == null {
-
+    $min: to-number($min + 'px');
   }
 
-
-
-  //$min: fix-scroll($min, $len);
-
-  $temp: null;
-
-  @if unit($max) == 'px' {
-    //$temp: fix-scroll($max, $len);
-    $temp: $max;
+  @if $mode == 'twelve-per' {
+    $calculeted: append($calculeted, ($viewport, repeat(auto-fit, to-minmax($min, $max)), $len, $grid-column));
   } @else {
-    $temp: 1fr;
+    $calculeted: append($calculeted, ($viewport, repeat($len, to-minmax($min, $max)), $len, $grid-column));
   }
 
-  @if $min {
-    @if $min == strip-unit($max) {
-      $temp: $max;
-    } @else {
-      $temp: minmax(#{$min}px, $temp);
-    }
-  }
 
-  $calculeted: append($calculeted, (null, repeat($len, $temp), $len));
-
-  @while $len > $treshold {
+  @while $len >= $treshold {
+    $template: null;
     $btw-gaps: $gap * ($len - 1);
-    //$viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
-    $viewport: ($min * $len) + $btw-gaps + $padding;
-    //$viewport: ($min * $len) + $btw-gaps + $padding + #{$scroll};
-    //$viewport: calc((100vw - 100%) * 10000);
+    $viewport: (strip-unit($min) * $len) + $btw-gaps + $padding;
 
     @if $mode {
       @if $mode == 'even' {
@@ -926,42 +948,38 @@
       $len: $len - 1;
     }
 
-    $temp: null;
+    @if $len >= $treshold {
+      @if $mode == 'twelve-per' {
+        // $max: 1/5;
+        // $without-gaps: $container - ($gap * ($len - 1));
+        // $without-gaps: $without-gaps * 0.01;
+        // $width-per: 100% - $without-gaps;
+        // //@debug $width-per;
+        // //$max: math.div(100% - percentage($without-gaps), $len) * $max; // - gaps
+        // $max: math.div($width-per, math.div($len, $max)); // - gaps
 
-    @if unit($max) == 'px' {
-      //$temp: fix-scroll($max, $len);
-      $temp: $max;
-    } @else {
-      $temp: 1fr;
-    }
+        $columns-count: $columns-count - 1;
 
-    @if $min {
-      @if $min == strip-unit($max) {
-        $temp: $max;
+        $max: $max + $max * (1 / $columns-count);
+
+        $template: repeat(auto-fit, to-minmax($min, $max));
       } @else {
-        $temp: minmax(#{$min}px, $temp);
+        $template: repeat($len, to-minmax($min, $max));
       }
+
+    } @else {
+      $template: 1fr;
     }
 
-    $calculeted: append($calculeted, ($viewport, repeat($len, $temp), $len)); // $max with fix-scroll isnstead of 1fr
+    $calculeted: append($calculeted, ($viewport, $template, $len, $grid-column));
   }
 
-  $temp: null;
-
-  @if unit($max) == 'px' {
-    //$temp: fix-scroll($max, 1);
-    $temp: $max;
-  } @else {
-    $temp: 1fr;
-  }
-
-  $viewport: ($min * $len) + $btw-gaps + $padding + $scroll;
-  $calculeted: append($calculeted, ($viewport, 1fr, $len)); // $max with fix-scroll isnstead of 1fr
+  @debug $calculeted;
 
   @return $calculeted;
 }
 
-@mixin smart-grid($value, $stretch: false) { // replace on func
+@mixin smart-grid($value, $stretch: false) {
 
 
   // $value on $columns
