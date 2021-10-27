@@ -761,6 +761,21 @@
 //   }
 // }
 
+
+@function calc-grid-col-by-len($cols, $len, $decrement: 1) {
+  $col: math.div($cols, $len);
+
+  @if $len <= 1 {
+    @return $cols;
+  }
+
+  @if is-float($col) {
+    @return calc-grid-col-by-len($cols, $len - $decrement);
+  } @else {
+    @return $col;
+  }
+}
+
 @function calc-viewport-templates($value, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
   // $mode: 'twelve-grid', 'twelve-per', 'twelve-px'
   // $mode must be list
@@ -774,6 +789,14 @@
     Тянуть при mode Либо в процентах, либо grid-column колонок
 
     twelve-per - added -> must have fixing scroll
+
+    добавить условия принятия аргументов для новых единиц
+
+    mode без twelve, по дефолту 12
+
+    для twelve-grid минимум считать также по колонкам, то есть, с учетом декремента
+
+    Тотальный рефактор $min
   */
 
   $calculeted: ();  // Переделать в мапу
@@ -782,9 +805,19 @@
   $scroll: 17.5;
   $btw-gaps: null;
   $viewport: null;
+  $grid-total-columns: null;
   $grid-column: null;
+  $decrement: 1;
   $treshold: 2;
-  $columns-count: null;
+
+  @if $mode and $mode == 'even' or $mode == 'odd' {
+    $decrement: 2;
+  }
+
+  @if $mode == 'odd' {
+    $treshold: 3;
+  }
+
 
   $len: null;
   $min: null;
@@ -845,7 +878,7 @@
     }
   }
 
-  @if $max and unit($max) == '' { // refactor
+  @if $mode == null and $max and unit($max) == '' { // refactor
     $mode: 'twelve-per';
   }
 
@@ -866,42 +899,8 @@
     //Возвращать не число темплейта, а число тянущихся колонок, как для 12
     @if $mode == 'twelve-per' {
 
-      $columns-count: math.div($len, $max);
-
-      $len: $columns-count;
-
-      $without-gaps: $container - ($gap * ($len - 1));
-
-
-      @debug $without-gaps;
-      @debug $container;
-
-      @debug $container / $without-gaps;
-
-      //@debug $without-gaps / $container;
-
-
-      //$without-gaps: $without-gaps * 0.01;
-      //$width-per: 100% - $without-gaps;
-      //@debug $width-per;
-      //$max: math.div(100% - percentage($without-gaps), $len) * $max; // - gaps
-
-      //$columns-count: $len;
-
-
-
-
-      //$test: $without-gaps / $container;
-
-      //$test: percentage($test);
-
-
-      //$max: math.div($test, $columns-count); // - gaps
-
-      @debug $max;
-
+      $len: math.div($len, $max);
       $gaps: to-number($gap * ($len - 1) + 'px');
-
       $max: calc((100% - $gaps) / $len);
 
       // $scroll: '(100vw - 100%)';
@@ -912,8 +911,11 @@
       //$max: calc(((100% - $gaps) / $len) - (100vw - 100%) / $len);
 
 
-    } @else {
-      //$columns-count: $len;
+    } @else if $mode == 'twelve-grid' {
+      $grid-total-columns: $len;
+      $len: math.div($len, $max);
+      $grid-column: calc-grid-col-by-len($grid-total-columns, $len, $decrement);
+      $max: 1fr;
     }
 
     //$max: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
@@ -940,7 +942,6 @@
 
     @if $min != 'auto' {
       $min-k: $min;
-      @debug $min-k;
     }
 
     @if type-of($max) == 'number' and unit($max) == 'px' {
@@ -957,12 +958,13 @@
 
   @if $mode == 'twelve-per' {
     $calculeted: append($calculeted, ($viewport, repeat(auto-fit, to-minmax($min, $max)), $len, $grid-column));
+  } @else if $mode == 'twelve-grid' {
+    $calculeted: append($calculeted, ($viewport, repeat($grid-total-columns, to-minmax($min, $max)), $len, $grid-column));
   } @else {
     $calculeted: append($calculeted, ($viewport, repeat($len, to-minmax($min, $max)), $len, $grid-column));
   }
 
 
-  @debug $len;
 
   @while $len >= $treshold {
     $template: null;
@@ -978,15 +980,11 @@
         @if $len % 2 == 0 {
           $len: $len + 1;
         }
-        $treshold: 3;
       }
-
-      $len: $len - 2;
-    } @else {
-      $len: $len - 1;
     }
 
-    @debug $len;
+    $len: $len - $decrement;
+
 
     @if $len >= $treshold {
       @if $mode == 'twelve-per' {
@@ -1004,9 +1002,9 @@
         $max: calc((100% - $gaps) / $len);
 
 
-        @debug $max;
-
         $template: repeat(auto-fit, to-minmax($min, $max));
+      } @else if $mode == 'twelve-grid' {
+        $template: repeat($grid-total-columns, to-minmax($min, $max));
       } @else {
         $template: repeat($len, to-minmax($min, $max));
       }
@@ -1014,6 +1012,10 @@
 
     } @else {
       $template: 1fr;
+    }
+
+    @if $mode == 'twelve-grid' {
+      $grid-column: calc-grid-col-by-len($grid-total-columns, $len, $decrement);
     }
 
     $calculeted: append($calculeted, ($viewport, $template, $len, $grid-column));
@@ -1024,7 +1026,7 @@
   @return $calculeted;
 }
 
-@mixin smart-grid($value, $stretch: false) {
+@mixin smart-grid($value, $mode: null, $stretch: false) {
 
 
   // $value on $columns
@@ -1190,9 +1192,10 @@
 
 
 
-  $calculeted: calc-viewport-templates($value);
+  $calculeted: calc-viewport-templates($value, $mode: $mode);
   $i: 1;
-  @each $viewport, $template, $resp-len in $calculeted {
+  @each $viewport, $template, $len, $grid-column in $calculeted { // refactor
+
 
     // move to calc-viewport-templates
 
@@ -1203,6 +1206,12 @@
 
       @media (min-width: #{$viewport-min}px) {
         grid-template-columns: $template;
+
+        @if $grid-column {
+          & > * {
+            grid-column: span $grid-column;
+          }
+        }
       }
 
     } @else if $i != len($calculeted) {
@@ -1211,6 +1220,12 @@
 
       @media (min-width: #{$viewport-min}px) and (max-width: #{$viewport-max}px) {
         grid-template-columns: $template;
+
+        @if $grid-column {
+          & > * {
+            grid-column: span $grid-column;
+          }
+        }
       }
     } @else {
 
@@ -1218,6 +1233,12 @@
 
         @media (max-width: #{$viewport-max}px) {
           grid-template-columns: $template;
+
+          @if $grid-column {
+            & > * {
+              grid-column: span $grid-column;
+            }
+          }
         }
     }
 

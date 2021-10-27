@@ -61,7 +61,8 @@ export default {
 
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
-    @include smart-grid((auto, 12, 12/5)); // work
+    //@include smart-grid((auto, 12, 12/8), $mode: 'twelve-grid'); // work
+    @include smart-grid((auto, 12, 12/8), $mode: 'twelve-grid'); // work
   }
 }
 </style>

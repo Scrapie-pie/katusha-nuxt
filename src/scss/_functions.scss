@@ -179,10 +179,18 @@
     @return $list;
 }
 
-@function get-nth($list, $n) {
-  @if $n > len($list) {
+@function get-nth($list, $i) {
+  @if $i > len($list) {
     @return null;
   } @else {
-    @return nth($list, $n);
+    @return nth($list, $i);
   }
+}
+
+@function is-float($n) {
+  @if $n != math.floor($n) {
+    @return true;
+  }
+
+  @return false;
 }
