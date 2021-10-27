@@ -49,7 +49,7 @@ export default {
     //@include smart-grid((9, 100px)); //work
     //@include smart-grid(200px); //work
     //@include smart-grid((130px, 200px)); // work
-    //@include smart-grid((100px, 5, 200px)); // work
+    @include smart-grid((100px, 5, 200px)); // work
 
     //@include smart-grid((auto, 7)); //work
     //@include smart-grid((auto, 200px)); // work
@@ -62,7 +62,7 @@ export default {
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
     //@include smart-grid((auto, 12, 12/8), $mode: 'twelve-grid'); // work
-    @include smart-grid((auto, 12, 12/8), $mode: 'twelve-grid'); // work
+    //@include smart-grid((130px, 12, 12/6), $mode: 'twelve-per'); // work
   }
 }
 </style>
