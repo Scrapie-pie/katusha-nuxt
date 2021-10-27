@@ -772,6 +772,8 @@
     Если нет $stretch - тянет, как и тянул. Если есть, находим нок ряда чисел - устанавливаем в родительскую сетку, тянем колонки.
 
     Тянуть при mode Либо в процентах, либо grid-column колонок
+
+    twelve-per - added -> must have fixing scroll
   */
 
   $calculeted: ();  // Переделать в мапу
@@ -855,7 +857,7 @@
     @if $max == null or unit($max) == '' {
       $min: 'auto';
     } @else {
-      $min: $max;
+      $min: $max; // remove and refactor minmax;
     }
   }
 
@@ -863,20 +865,51 @@
 
     //Возвращать не число темплейта, а число тянущихся колонок, как для 12
     @if $mode == 'twelve-per' {
+
+      $columns-count: math.div($len, $max);
+
+      $len: $columns-count;
+
       $without-gaps: $container - ($gap * ($len - 1));
-      $without-gaps: $without-gaps * 0.01;
-      $width-per: 100% - $without-gaps;
+
+
+      @debug $without-gaps;
+      @debug $container;
+
+      @debug $container / $without-gaps;
+
+      //@debug $without-gaps / $container;
+
+
+      //$without-gaps: $without-gaps * 0.01;
+      //$width-per: 100% - $without-gaps;
       //@debug $width-per;
       //$max: math.div(100% - percentage($without-gaps), $len) * $max; // - gaps
 
       //$columns-count: $len;
-      $columns-count: math.div($len, $max);
-      $len: $columns-count;
 
 
 
 
-      $max: math.div($width-per, $columns-count); // - gaps
+      //$test: $without-gaps / $container;
+
+      //$test: percentage($test);
+
+
+      //$max: math.div($test, $columns-count); // - gaps
+
+      @debug $max;
+
+      $gaps: to-number($gap * ($len - 1) + 'px');
+
+      $max: calc((100% - $gaps) / $len);
+
+      // $scroll: '(100vw - 100%)';
+      // --d: #{$scroll} / #{$len};
+
+
+
+      //$max: calc(((100% - $gaps) / $len) - (100vw - 100%) / $len);
 
 
     } @else {
@@ -910,7 +943,7 @@
       @debug $min-k;
     }
 
-    @if $max != 1fr {
+    @if type-of($max) == 'number' and unit($max) == 'px' {
       $min: strip-unit($max) * $min-k;
     } @else {
       $min: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
@@ -919,6 +952,9 @@
     $min: to-number($min + 'px');
   }
 
+
+
+
   @if $mode == 'twelve-per' {
     $calculeted: append($calculeted, ($viewport, repeat(auto-fit, to-minmax($min, $max)), $len, $grid-column));
   } @else {
@@ -926,12 +962,14 @@
   }
 
 
+  @debug $len;
+
   @while $len >= $treshold {
     $template: null;
     $btw-gaps: $gap * ($len - 1);
     $viewport: (strip-unit($min) * $len) + $btw-gaps + $padding;
 
-    @if $mode {
+    @if $mode and $mode == 'even' or $mode == 'odd' { // refactor
       @if $mode == 'even' {
         @if $len % 2 != 0 {
           $len: $len + 1;
@@ -948,6 +986,8 @@
       $len: $len - 1;
     }
 
+    @debug $len;
+
     @if $len >= $treshold {
       @if $mode == 'twelve-per' {
         // $max: 1/5;
@@ -958,14 +998,19 @@
         // //$max: math.div(100% - percentage($without-gaps), $len) * $max; // - gaps
         // $max: math.div($width-per, math.div($len, $max)); // - gaps
 
-        $columns-count: $columns-count - 1;
+        //$max: $max + $max * (1 / $len);
 
-        $max: $max + $max * (1 / $columns-count);
+        $gaps: to-number($gap * ($len - 1) + 'px');
+        $max: calc((100% - $gaps) / $len);
+
+
+        @debug $max;
 
         $template: repeat(auto-fit, to-minmax($min, $max));
       } @else {
         $template: repeat($len, to-minmax($min, $max));
       }
+
 
     } @else {
       $template: 1fr;
