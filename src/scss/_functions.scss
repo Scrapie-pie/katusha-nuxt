@@ -22,11 +22,21 @@
   }
 }
 
-@function is-map($value) {
-  @return type-of($value) == 'map';
+@function add-unit($number, $unit) { // mb refactor
+  $units: ('px': 1px, 'cm': 1cm, 'mm': 1mm, '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in, 'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex, 'vw': 1vw, 'vh': 1vh, 'vmin': 1vmin, 'vmax': 1vmax);
+
+  @if not index(map-keys($units), $unit) {
+    $_: log('Invalid unit `#{$unit}`.');
+  }
+
+  @return $number * map-get($units, $unit);
 }
 
-@function to-number($value) {
+@function to-number($value, $unit: null) {
+  @if $unit {
+    @return to-number($value + $unit);
+  }
+
   @if type-of($value) == 'number' {
     @return $value;
   } @else if type-of($value) != 'string' {
@@ -112,15 +122,7 @@
 	@return $number;
 }
 
-@function add-unit($number, $unit) {
-  $units: ('px': 1px, 'cm': 1cm, 'mm': 1mm, '%': 1%, 'ch': 1ch, 'pc': 1pc, 'in': 1in, 'em': 1em, 'rem': 1rem, 'pt': 1pt, 'ex': 1ex, 'vw': 1vw, 'vh': 1vh, 'vmin': 1vmin, 'vmax': 1vmax);
 
-  @if not index(map-keys($units), $unit) {
-    $_: log('Invalid unit `#{$unit}`.');
-  }
-
-  @return $number * map-get($units, $unit);
-}
 
 
 
@@ -179,7 +181,7 @@
     @return $list;
 }
 
-@function get-nth($list, $i) {
+@function soft-nth($list, $i) {
   @if $i > len($list) {
     @return null;
   } @else {
@@ -187,10 +189,46 @@
   }
 }
 
-@function is-float($n) {
-  @if $n != math.floor($n) {
-    @return true;
-  }
+@function is-null($value) {
+  @return type-of($value) == 'null';
+}
 
-  @return false;
+@function is-bool($value) {
+  @return type-of($value) == 'bool';
+}
+
+@function is-calc($value) {
+  @return type-of($value) == 'calculation';
+}
+
+@function is-func($value) {
+  @return type-of($value) == 'function';
+}
+
+@function is-args($value) {
+  @return type-of($value) == 'arglist';
+}
+
+@function is-list($value) {
+  @return type-of($value) == 'list';
+}
+
+@function is-map($value) {
+  @return type-of($value) == 'map';
+}
+
+@function is-string($value) {
+  @return type-of($value) == 'string';
+}
+
+@function is-number($value) {
+  @return type-of($value) == 'number';
+}
+
+@function is-float($n) {
+  @return $n != math.floor($n);
+}
+
+@function is-color($value) {
+  @return type-of($value) == 'color';
 }

@@ -776,8 +776,30 @@
   }
 }
 
-@function calc-viewport-templates($value, $gap: 30, $mode: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
-  // $mode: 'twelve-grid', 'twelve-per', 'twelve-px'
+@function to-template($grid-total-columns, $len, $max, $mode) {
+  $template: repeat($len, minmax(auto, $max));
+
+  @if $mode == 'percent' {
+    $template: repeat(auto-fit, $max);
+  } @else if $mode == 'span' {
+    $template: repeat($grid-total-columns, $max);
+  } @else if $mode == 'px' {
+    $template: repeat(auto-fit, minmax(auto, $max));
+  }
+
+  @return $template;
+}
+
+// @function is-num-has-unit($number, $unit) { // mb will improve
+//   @return type-of($number) == 'number' and unit($number) == $unit;
+// }
+
+@function calc-viewport-templates($value, $gap: 30, $mode: null, $decreaser: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
+  // $decreaser заменить на mode
+  // если $max меньше единицы типа mode percent, если больше типа mode span
+
+  // $mode: 'span', 'percent', null
+  // $decreaser: 'even', 'odd'
   // $mode must be list
 
   // $scroll: '(100vw - 100%)';
@@ -788,24 +810,34 @@
 
     Тянуть при mode Либо в процентах, либо grid-column колонок
 
-    twelve-per - added -> must have fixing scroll
+    percent - added -> must have fixing scroll
 
     добавить условия принятия аргументов для новых единиц
 
     mode без twelve, по дефолту 12
 
-    для twelve-grid минимум считать также по колонкам, то есть, с учетом декремента
+    для span минимум считать также по колонкам, то есть, с учетом декремента
 
     Тотальный рефактор $min
 
-    $mode: span, percent, px, default
+    если мод не указан, то max тянуть по сколько, добавить для px
 
     фиксить скролл походу только в обычном гриде или при мульти колонах аля list
     хотя хз
   */
 
-  $calculeted: ();  // Переделать в мапу
-  $container: strip-unit(get-variable(container));
+  // $len -> row-len
+
+  //    grid-template-columns: repeat(auto-fit, clamp(100px, 25%, 300px)); min(), max()
+
+  // проверить с разными размерами контейнера, где-то флурить
+
+  $calculeted: [];  // Переделать в мапу
+
+  $container: strip-unit(get-variable(container)); // get-var
+  $len: null;
+  $min: null;
+  $max: null;
   $padding: 15 * 2;
   $scroll: 17.5;
   $btw-gaps: null;
@@ -814,116 +846,105 @@
   $grid-column: null;
   $decrement: 1;
   $treshold: 2;
+  $template: null;
+  $is-min-coefficient: false;
 
-  @if $mode and $mode == 'even' or $mode == 'odd' {
+  @if $decreaser {
     $decrement: 2;
+
+    @if $decreaser == 'odd' {
+      $treshold: 3;
+    }
   }
 
-  @if $mode == 'odd' {
-    $treshold: 3;
-  }
+  @if is-number($value) {
 
-
-  $len: null;
-  $min: null;
-  $max: null;
-
-  @if type-of($value) == 'number' {
-    @if unit($value) == '' {
+    @if unitless($value) {
       $len: $value;
+
     } @else {
       $max: strip-unit($value);
     }
-  } @else if type-of($value) == 'list' {
 
-    $first:  get-nth($value, 1);
-    $second: get-nth($value, 2);
-    $third:  get-nth($value, 3);
+  } @else if is-list($value) {
 
-    @if $second == null {
+    $first:  soft-nth($value, 1);
+    $second: soft-nth($value, 2);
+    $third:  soft-nth($value, 3);
 
-      @if unit($first) == '' {
+    @if is-null($second) {
+
+      @if unitless($first) {
         $len: $first;
+
       } @else {
         $max: $first;
       }
 
-    } @else if $third == null {
+    } @else if is-null($third) {
 
-      @if type-of($first) == 'number' {
-        @if unit($first) == '' and $first >= 1 {
+      @if is-number($first) {
+
+        @if unitless($first) and $first >= 1 {
           $len: $first;
+
         } @else {
           $min: $first;
         }
+
       } @else {
         $min: $first;
       }
 
       @if $len {
-        // Тут типа тянуть если по колонкам
         $max: $second;
-        // Тут типа тянуть если по колонкам
+
       } @else {
-        @if unit($second) == '' {
+        @if unitless($second) {
           $len: $second;
+
         } @else {
           $max: $second;
         }
       }
+
     } @else {
       $min: $first;
       $len: $second;
       $max: $third;
-      // @if unit($third) == '' {
-      //   $grid-column: $third;
-      // } @else {
-      //   $max: $third;
-      // }
     }
   }
 
-  @if $mode == null and $max and unit($max) == '' { // refactor
-    $mode: 'twelve-per';
-  }
+  // define-min, define-max
+  // define-len
 
-  // Минимум сейчас высчитывать по columns-count,
-  // Хотя columns-count заменить на len, и len на что-то
-  //
-
-  @if $min == null { // refactor
-    @if $max == null or unit($max) == '' {
+  @if is-null($min) { // refactor // попробовать перенести под max
+    @if is-null($max) or unitless($max) {
       $min: 'auto';
+
     } @else {
-      $min: $max; // remove and refactor minmax;
+      $min: $max;
+      $is-min-coefficient: is-number($min) and unitless($min);
     }
+  }
+
+  @if is-null($mode) and $max and unitless($max) { // refactor
+    $mode: 'percent';
   }
 
   @if $max and $len {
 
-    //Возвращать не число темплейта, а число тянущихся колонок, как для 12
-    @if $mode == 'twelve-per' {
-
+    @if $mode == 'percent' {
       $len: math.div($len, $max);
-      $gaps: to-number($gap * ($len - 1) + 'px');
+      $gaps: to-number($gap * ($len - 1), 'px');
       $max: calc((100% - $gaps) / $len);
 
-      // $scroll: '(100vw - 100%)';
-      // --d: #{$scroll} / #{$len};
-
-
-
-      //$max: calc(((100% - $gaps) / $len) - (100vw - 100%) / $len);
-
-
-    } @else if $mode == 'twelve-grid' {
+    } @else if $mode == 'span' {
       $grid-total-columns: $len;
       $len: math.div($len, $max);
-      $grid-column: calc-grid-col-by-len($grid-total-columns, $len, $decrement);
+      $grid-column: calc-grid-col-by-len($grid-total-columns, $len, $decrement); // mb combine with something
       $max: 1fr;
     }
-
-    //$max: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
 
   } @else if $max {
     $len: 1;
@@ -940,94 +961,67 @@
     $max: 1fr;
   }
 
-
-
-  @if $min == 'auto' or type-of($min) == 'number' and unit($min) == '' {
-    $min-k: 0.75;
+  @if $min == 'auto' or $is-min-coefficient {
+    $coefficient: 0.75;
 
     @if $min != 'auto' {
-      $min-k: $min;
+      $coefficient: $min;
     }
 
     @if type-of($max) == 'number' and unit($max) == 'px' {
-      $min: strip-unit($max) * $min-k;
+      $min: strip-unit($max) * $coefficient;
+
     } @else {
-      $min: math.div($container - ($gap * ($len - 1)), $len) * $min-k;
+      $min: math.div($container - ($gap * ($len - 1)), $len) * $coefficient;
     }
 
-    $min: to-number($min + 'px');
+    $min: to-number($min, 'px');
   }
 
+  $template: to-template($grid-total-columns, $len, $max, $mode);
+  $calculeted: append($calculeted, ($viewport, $template, $len, $grid-column));
+  $min-n: strip-unit($min);
 
-
-
-  @if $mode == 'twelve-per' {
-    //$calculeted: append($calculeted, ($viewport, repeat(auto-fit, to-minmax($min, $max)), $len, $grid-column));
-    $calculeted: append($calculeted, ($viewport, repeat(auto-fit, $max), $len, $grid-column));
-  } @else if $mode == 'twelve-grid' {
-    $calculeted: append($calculeted, ($viewport, repeat($grid-total-columns, $max), $len, $grid-column));
-  } @else {
-    //$calculeted: append($calculeted, ($viewport, repeat($len, to-minmax($min, $max)), $len, $grid-column));
-    $calculeted: append($calculeted, ($viewport, repeat($len, minmax(auto, $max)), $len, $grid-column)); // min auto
+  @if $decreaser == 'even' {
+    @if $len % 2 != 0 {
+      $len: $len + 1;
+    }
+  } @else if $decreaser == 'odd' {
+    @if $len % 2 == 0 {
+      $len: $len + 1;
+    }
   }
-
-
-  $min-n: strip-unit($min); //mb remove mb move somewhere
 
   @while $len >= $treshold {
-    $template: null;
     $btw-gaps: $gap * ($len - 1);
-    $viewport: ($min-n * $len) + $btw-gaps + $padding;
-
-    @if $mode and $mode == 'even' or $mode == 'odd' { // refactor
-      @if $mode == 'even' {
-        @if $len % 2 != 0 {
-          $len: $len + 1;
-        }
-      } @else if $mode == 'odd' {
-        @if $len % 2 == 0 {
-          $len: $len + 1;
-        }
-      }
-    }
-
+    $viewport: ($min-n * $len) + $btw-gaps + $padding; // refactor test without padding
     $len: $len - $decrement;
-
 
     @if $len >= $treshold {
 
-      @if $mode == 'twelve-per' {
-
+      @if $mode == 'percent' {
         $gaps: to-number($gap * ($len - 1) + 'px');
         $max: calc((100% - $gaps) / $len);
-        //$template: repeat(auto-fit, to-minmax($min, $max));
-        $template: repeat(auto-fit, $max);
-
-      } @else if $mode == 'twelve-grid' {
-        $template: repeat($grid-total-columns, $max);
-      } @else {
-        //$template: repeat($len, to-minmax($min, $max));
-        $template: repeat($len, minmax(auto, $max));
       }
 
+      $template: to-template($grid-total-columns, $len, $max, $mode);
 
     } @else {
       $template: 1fr;
     }
 
-    @if $mode == 'twelve-grid' {
+    @if $mode == 'span' {
       $grid-column: calc-grid-col-by-len($grid-total-columns, $len, $decrement);
-      $len: $grid-total-columns / $grid-column;
+      $len: math.div($grid-total-columns, $grid-column);
     }
 
     $calculeted: append($calculeted, ($viewport, $template, $len, $grid-column));
   }
 
-  @debug $calculeted;
   @return $calculeted;
 }
 
-@mixin smart-grid($value, $mode: null, $stretch: false) {
+@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false) {
 
 
   // $value on $columns
@@ -1193,7 +1187,7 @@
 
 
 
-  $calculeted: calc-viewport-templates($value, $mode: $mode);
+  $calculeted: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser);
   $i: 1;
   @each $viewport, $template, $len, $grid-column in $calculeted { // refactor
 
