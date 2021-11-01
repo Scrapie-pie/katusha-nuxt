@@ -24,7 +24,7 @@ export default {
   font-weight: 300;
 
   &__title {
-    color: get-variable(color, blue);
+    color: get-var(color, blue);
     font-size: 18px;
   }
 

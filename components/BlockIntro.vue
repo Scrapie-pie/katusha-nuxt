@@ -20,8 +20,8 @@ export default {
 <style lang="scss">
 .block-intro {
   &__description {
-    @include h(3, get-variable(color, grey_dark));
-    //margin-bottom: get-variable(space, lg);
+    @include h(3, get-var(color, grey_dark));
+    //margin-bottom: get-var(space, lg);
     margin-bottom: 75px;
   }
 }

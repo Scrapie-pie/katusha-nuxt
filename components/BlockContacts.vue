@@ -68,16 +68,16 @@ export default {
     //margin: 55px 0 60px;
     @include flex-container(column, 20px);
     padding-top: 25px;
-    border-top: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
   }
   &__dynamic {
     @include flex-container(column, 25px);
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
   &__address {
     font-size: 20px;
     padding-bottom: 20px;
-    border-bottom: 1px solid get-variable(color, grey);
+    border-bottom: 1px solid get-var(color, grey);
     font-weight: 300;
   }
   &__tabs {

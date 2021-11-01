@@ -47,7 +47,7 @@ export default {
 
   &__preview {
     @include flex-centralize;
-    background-color: get-variable(color, grey);
+    background-color: get-var(color, grey);
     height: 320px;
     border-radius: 10px;
     padding: 30px;
@@ -71,8 +71,8 @@ export default {
     // width: 32px;
     // height: 32px;
     border-radius: 4px;
-    background-color: get-variable(color, white);
-    color: get-variable(color, blue);
+    background-color: get-var(color, white);
+    color: get-var(color, blue);
   }
 
   &__description {
@@ -87,7 +87,7 @@ export default {
 
   &__caption {
     font-size: 16px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
 
 

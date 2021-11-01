@@ -76,7 +76,7 @@ export default {
   @include flex-container(column, 100px);
 
   .banner {
-    background-color: get-variable(color, grey);
+    background-color: get-var(color, grey);
     display: grid;
     //grid-template-columns: minmax(450px, 850px) minmax(200px, 460px);
     grid-template-columns: 1fr minmax(200px, 460px);

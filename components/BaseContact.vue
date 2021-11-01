@@ -62,20 +62,20 @@ function determineType(value) {
 
   &_lg {
     font-size: 28px;
-    color: get-variable(color, blue);
+    color: get-var(color, blue);
     &:hover {
       .icon {
         color: currentColor;
       }
     }
     .icon {
-      color: get-variable(color, black);
+      color: get-var(color, black);
     }
   }
 
   &_sm {
     &:hover {
-      color: get-variable(color, blue);
+      color: get-var(color, blue);
     }
     .icon {
       width: 20px;

@@ -79,7 +79,7 @@ export default {
 
   &__subtitle + &__content {
     padding-top: 60px;
-    border-top: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
   }
   // &__content {
   //   //height: 100%;
@@ -92,7 +92,7 @@ export default {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     justify-content: space-between;
     gap: 30px 50px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
 
   // &__actions {

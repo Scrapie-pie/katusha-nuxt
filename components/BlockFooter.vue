@@ -31,7 +31,7 @@ export default {
     grid-template-columns: 1fr auto 1fr;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
     padding: 25px 0;
     font-size: 14px;
 
@@ -52,7 +52,7 @@ export default {
     justify-content: space-between;
 
     .icon {
-      color: get-variable(color, light);
+      color: get-var(color, light);
     }
   }
 
@@ -61,7 +61,7 @@ export default {
     align-items: center;
     font-size: 14px;
     &:hover {
-      color: get-variable(color, blue);
+      color: get-var(color, blue);
     }
     .icon {
       width: 20px;

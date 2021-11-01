@@ -53,7 +53,7 @@ export default {
     max-width:  $size;
     max-height: $size;
     .icon {
-      //color: get-variable(color, blue);
+      //color: get-var(color, blue);
     }
   }
 
@@ -64,7 +64,7 @@ export default {
   }
 
   &__name {
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
 
   &__value {
@@ -75,20 +75,20 @@ export default {
     @include flex-container(row, to-unit(25px, em));
     #{$self}__icon {
       padding: 5px;
-      background-color: get-variable(color, white);
+      background-color: get-var(color, white);
       border-radius: 10px;
-      color: get-variable(color, blue);
+      color: get-var(color, blue);
     }
 
     #{$self}__label {
-      color: get-variable(color, black);
+      color: get-var(color, black);
     }
   }
 
   &_aligned {
     @include flex-container(row, to-unit(25px, em));
     #{$self}__icon {
-      color: get-variable(color, blue);
+      color: get-var(color, blue);
       .icon {
         max-width: none;
         height: 38px;
@@ -98,7 +98,7 @@ export default {
     }
 
     #{$self}__label {
-      color: get-variable(color, grey_dark);
+      color: get-var(color, grey_dark);
     }
   }
 
@@ -111,7 +111,7 @@ export default {
 
     #{$self}__label {
       font-size: 18px;
-      color: get-variable(color, grey_dark);
+      color: get-var(color, grey_dark);
     }
   }
 
@@ -126,7 +126,7 @@ export default {
   //   }
   //
   //   &__label {
-  //     color: get-variable(color, grey_dark);
+  //     color: get-var(color, grey_dark);
   //   }
   // }
 }

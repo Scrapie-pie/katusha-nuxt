@@ -34,7 +34,7 @@ export default {
   &__bottom {
     padding-top: 50px;
     padding-bottom: 35px; // or 30
-    border-bottom: 1px solid get-variable(color, grey);
+    border-bottom: 1px solid get-var(color, grey);
     margin-bottom: 30px;
   }
 }

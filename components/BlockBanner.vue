@@ -14,7 +14,7 @@ export default {
 
 .banner {
   @include flex-centralize;
-  //background-color: get-variable(color, grey);
+  //background-color: get-var(color, grey);
   padding: 55px;
   border-radius: 20px;
 }

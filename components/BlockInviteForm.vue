@@ -64,7 +64,7 @@ export default {
 
   &__order {
     padding-top: 25px;
-    border-top: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
     display: grid;
     grid-template-columns: minmax(150px, 300px) auto;
     justify-content: space-between;

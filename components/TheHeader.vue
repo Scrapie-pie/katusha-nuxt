@@ -39,7 +39,7 @@ export default {
 
 <style lang="scss">
 .header {
-  background-color: get-variable(color, white);
+  background-color: get-var(color, white);
   box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 8%);
   z-index: 10;
   //margin-bottom: 60px;
@@ -53,7 +53,7 @@ export default {
 
   &__nav {
     //@include flex-container(row, 40px);
-    //@include flex-container(row, get-variable(space, xs));
+    //@include flex-container(row, get-var(space, xs));
     @include flex-container(row, (5px, 50px)); // temp
 
   }
@@ -61,10 +61,10 @@ export default {
   &__ref {
     @include flex-container(row, 10px);
     align-items: center;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
     font-size: 18px;
     .icon {
-      color: get-variable(color, black);
+      color: get-var(color, black);
     }
   }
 }

@@ -27,7 +27,7 @@ export default {
 
 <style lang="scss">
 .link {
-  color: get-variable(color, blue);
+  color: get-var(color, blue);
 
   &_underline {
     text-decoration: underline;

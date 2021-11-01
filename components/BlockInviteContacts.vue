@@ -37,13 +37,13 @@ export default {
   &__address {
     font-size: 24px;
     font-weight: 300;
-    color: get-variable(color, grey_dark)
+    color: get-var(color, grey_dark)
   }
 
   &__contacts {
     padding: 35px 0;
-    border-top: 1px solid get-variable(color, grey);
-    border-bottom: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
+    border-bottom: 1px solid get-var(color, grey);
     @include flex-container(row, 20px);
     justify-content: space-around;
     align-items: center;
@@ -72,7 +72,7 @@ export default {
     padding: 10px 15px;
     background-color: white;
     font-size: 18px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
     text-align: center;
     border-radius: 10px;
   }

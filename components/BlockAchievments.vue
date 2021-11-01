@@ -66,7 +66,7 @@ export default {
     @include flex-container(column, 15px);
     align-items: flex-start;
     font-size: 14px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
 
   &__badge {

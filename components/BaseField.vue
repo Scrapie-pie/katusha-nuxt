@@ -169,7 +169,7 @@ export default {
   }
 
   &__name {
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
     pointer-events: auto;
     width: min-content;
     cursor: pointer;
@@ -189,16 +189,16 @@ export default {
     font-weight: 300;
     font-size: 14px;
     line-height: 18px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
   }
 
   &__text, &__password, &__email {
     #{$field}__action {
       cursor: text;
-      background-color: get-variable(color, white);
+      background-color: get-var(color, white);
       box-shadow: 0px 2px 10px rgb(0 0 0 / 5%);
       position: relative;
-      border-left: 3px solid get-variable(color, blue);
+      border-left: 3px solid get-var(color, blue);
 
       display: flex;
       align-items: center;
@@ -231,7 +231,7 @@ export default {
       &[required] + #{$field}__placeholder {
         &:after {
           content: ' *';
-          color: get-variable(color, blue);
+          color: get-var(color, blue);
         }
       }
     }
@@ -300,7 +300,7 @@ export default {
 }
 
 .mx {
-  $bg: get-variable(color, white);
+  $bg: get-var(color, white);
   $pref: &;
 
   &-datepicker {
@@ -311,7 +311,7 @@ export default {
       width: 100%;
       height: auto;
       vertical-align: 0;
-      color: get-variable(color, light);
+      color: get-var(color, light);
     }
   }
   &-input-wrapper {
@@ -360,7 +360,7 @@ export default {
       max-height: 42px;
       min-width: 42px;
       min-height: 42px;
-      border-left: 1px solid get-variable(color, grey);
+      border-left: 1px solid get-var(color, grey);
       padding: 5px 5px;
     }
   }

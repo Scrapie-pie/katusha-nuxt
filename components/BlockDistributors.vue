@@ -48,8 +48,8 @@ export default {
     grid-template-columns: 260px minmax(0, 1000px);
     justify-content: space-between;
     // padding: 35px 0;
-    border-top: 1px solid get-variable(color, grey);
-    border-bottom: 1px solid get-variable(color, grey);
+    border-top: 1px solid get-var(color, grey);
+    border-bottom: 1px solid get-var(color, grey);
 
     grid-gap: 30px;
 
@@ -79,7 +79,7 @@ export default {
 
   &__caption {
     max-width: 260px;
-    color: get-variable(color, grey_dark);
+    color: get-var(color, grey_dark);
     line-height: 1.5em
   }
 

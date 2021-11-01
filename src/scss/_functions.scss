@@ -3,7 +3,7 @@
 
 //@import "_variables";
 
-@function get-variable($key, $map-key: null) {
+@function get-var($key, $map-key: null) {
   $value: map-get($variables, $key); // why map-get-strict() doesn't work here??
 
   //@if is-map($value) { // IT DOESN'T WORK HERE TOO !!!! FUCKING SCSS!!!!!!!!!!
@@ -72,8 +72,8 @@
   // if not $_fs replace $base-font default on 16px
   $result: $value;
   $source-unit: unit($value);
-  $value: strip-unit($value);
-  $base-font: strip-unit($base-font);
+  $value: del-unit($value);
+  $base-font: del-unit($base-font);
 
   @if $source-unit == $to-unit {
     @return $result;
@@ -110,11 +110,11 @@
   @return to-fixed(to-unit($px, 'rem'), 3);
 }
 
-@function calc-responsive($min-size, $max-size, $min-vw: get-variable(breakpoint, xs), $max-vw: get-variable(container)) { // mb move defaults to to-responsive
-  @return calc(#{$min-size} + #{strip-unit($max-size - $min-size)} * ((100vw - #{$min-vw}) / #{strip-unit($max-vw - $min-vw)}));
+@function calc-responsive($min-size, $max-size, $min-vw: get-var(breakpoint, xs), $max-vw: get-var(container)) { // mb move defaults to to-responsive
+  @return calc(#{$min-size} + #{del-unit($max-size - $min-size)} * ((100vw - #{$min-vw}) / #{del-unit($max-vw - $min-vw)}));
 }
 
-@function strip-unit($number) {
+@function del-unit($number) {
 	@if type-of($number) == 'number' and not unitless($number) {
 		@return math.div($number, ($number * 0 + 1));
 	}
@@ -131,7 +131,7 @@
 
   @each $item in $list {
     $item: to-number($item);
-    $item: strip-unit($item);
+    $item: del-unit($item);
     $result: $result + $item;
   }
 

@@ -216,7 +216,7 @@ export default {
 <style lang="scss">
 .section-models {
   .banner {
-    background-color: get-variable(color, grey);
+    background-color: get-var(color, grey);
     position: relative;
   }
 }

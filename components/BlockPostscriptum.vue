@@ -14,8 +14,8 @@ export default {
 .postcriptum {
   margin-top: 30px;
   padding-top: 10px;
-  border-top: 1px solid get-variable(color, grey);
-  color: get-variable(color, grey_dark);
+  border-top: 1px solid get-var(color, grey);
+  color: get-var(color, grey_dark);
   font-weight: 300;
   font-size: 14px;
 

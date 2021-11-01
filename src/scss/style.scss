@@ -9,9 +9,9 @@
 }
 
 $min_width: 320px;
-$max_width: get-variable(container);
+$max_width: get-var(container);
 $min_font: 10px;
-$max_font:  get-variable(font-size, base);
+$max_font:  get-var(font-size, base);
 
 html {
   box-sizing: border-box !important;
@@ -19,9 +19,9 @@ html {
   //font-size: 16px;
 
   // $min_width: 320px;
-  // $max_width: get-variable(container);
+  // $max_width: get-var(container);
   // $min_font: 10px;
-  // $max_font:  get-variable(font-size, base);
+  // $max_font:  get-var(font-size, base);
 
   @include to-responsive(font-size, $min_font, $max_font, $min_width, $max_width);
 }
@@ -45,8 +45,8 @@ body {
 
   //font-size: 18px;
   font-family: 'PFDinDisplayPro';
-  color: get-variable(color, black);
-  background-color: get-variable(color, grey_light);
+  color: get-var(color, black);
+  background-color: get-var(color, grey_light);
 }
 
 p {
@@ -71,8 +71,8 @@ p {
     } @else if ($i == 4) {
       $weight: 300;
     }
-    //@include h($i, $weight: $weight, $margin-bottom: get-variable(space, micro-xxl));
-    @include h($i, $weight: $weight, $margin-bottom: get-variable(space, xs));
+    //@include h($i, $weight: $weight, $margin-bottom: get-var(space, micro-xxl));
+    @include h($i, $weight: $weight, $margin-bottom: get-var(space, xs));
   }
 
   // .font_size_#{$i} {
@@ -83,7 +83,7 @@ p {
     @include h($i); // mb compare
   }
   // .font_type_#{$i} {
-  //   @include h($i, get-variable(color, black)); // mb compare
+  //   @include h($i, get-var(color, black)); // mb compare
   // }
 }
 
@@ -94,11 +94,11 @@ p {
 }
 
 .font_color_black {
-  color: get-variable(color, black);
+  color: get-var(color, black);
 }
 
 .font_color_grey {
-  color: get-variable(color, grey_dark);
+  color: get-var(color, grey_dark);
 }
 
 // normalized

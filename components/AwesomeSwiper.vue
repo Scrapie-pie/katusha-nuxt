@@ -67,7 +67,7 @@ export default {
   .icon_arrow {
     &_left, &_right {
       cursor: pointer;
-      color: get-variable(color, white);
+      color: get-var(color, white);
       position: absolute;
       top: 50%;
       transform: translateY(-50%);

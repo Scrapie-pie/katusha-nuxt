@@ -30,7 +30,7 @@ export default {
 
   box-sizing: border-box;
 
-  padding: get-variable(space, micro-sm) 35px;
+  padding: get-var(space, micro-sm) 35px;
 
   height: 50px;
 
@@ -39,9 +39,9 @@ export default {
   align-items: center;
   justify-content: space-between;
 
-  background-color: get-variable(color, blue);
+  background-color: get-var(color, blue);
   box-shadow: 0px 4px 16px rgba(0, 141, 210, 0.15); // cscs function hex opacity
-  color: get-variable(color, white);
+  color: get-var(color, white);
 
   font-family: inherit;
   line-height: 1em;

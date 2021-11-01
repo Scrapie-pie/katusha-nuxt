@@ -102,7 +102,7 @@ export default {
   }
   &__caption {
     font-size: 14px;
-    color: get-variable(color, grey_dark)
+    color: get-var(color, grey_dark)
   }
 
 

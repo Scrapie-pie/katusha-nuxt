@@ -16,7 +16,7 @@
 <style lang="scss">
 main {
   @include flex-container(column);
-  margin-bottom: get-variable(space, xl);
+  margin-bottom: get-var(space, xl);
 
   @include to-responsive((
     grid-gap: (60px, 140px),
@@ -40,8 +40,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .blocks {
   //@include flex-container(column, 100px);
-  //@include flex-container(column, get-variable(space, xl));
-  //@include flex-container(column, get-variable(space, xl));
+  //@include flex-container(column, get-var(space, xl));
+  //@include flex-container(column, get-var(space, xl));
   display: flex;
   flex-direction: column;
   @include to-responsive(grid-gap, 30px, 100px);
