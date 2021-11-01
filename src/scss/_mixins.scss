@@ -790,15 +790,23 @@
   @return $template;
 }
 
+@function has-unit($number, $unit: null) {
+  @if is-null($unit) {
+    @return not unitless($num);
+  }
+
+  @return unit($number) == $unit;
+}
+
 // @function is-num-has-unit($number, $unit) { // mb will improve
 //   @return type-of($number) == 'number' and unit($number) == $unit;
 // }
 
-@function calc-viewport-templates($value, $gap: 30, $mode: null, $decreaser: null, $stretch: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
+@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $multi: false) { //$mode == 'even' or 'odd' or 'always' or 'fit' or null при mode: fit и stretch эффект обычного грида с auto-fit
   // $decreaser заменить на mode
   // если $max меньше единицы типа mode percent, если больше типа mode span
 
-  // $mode: 'span', 'percent', null
+  // $mode: 'span', 'percent', 'multi', null
   // $decreaser: 'even', 'odd'
   // $mode must be list
 
@@ -857,78 +865,105 @@
     }
   }
 
-  @if is-number($value) {
+  @if is-number($values) {
 
-    @if unitless($value) {
-      $len: $value;
+    @if unitless($values) {
+      $len: $values;
 
     } @else {
-      $max: strip-unit($value);
+      $max: strip-unit($values);
     }
 
-  } @else if is-list($value) {
+  } @else if is-list($values) {
 
-    $first:  soft-nth($value, 1);
-    $second: soft-nth($value, 2);
-    $third:  soft-nth($value, 3);
+    //@if $mode == 'multi' or is-list(soft-nth($values, 2)) {
+    @if $multi {
+      $min: [];
+      $max: [];
 
-    @if is-null($second) {
+      @each $value in $values {
 
-      @if unitless($first) {
-        $len: $first;
+        @if is-list($value) {
 
-      } @else {
-        $max: $first;
+          @if len($value) > 1 {
+            $min: append($min, nth($value, 1));
+            $max: append($max, nth($value, 2));
+
+          } @else {
+            $max: append($max, nth($value, 1));
+          }
+
+        } @else {
+          $max: append($max, $value);
+        }
       }
 
-    } @else if is-null($third) {
+    } @else {
+      $first:  soft-nth($values, 1);
+      $second: soft-nth($values, 2);
+      $third:  soft-nth($values, 3);
 
-      @if is-number($first) {
+      @if is-null($second) {
 
-        @if unitless($first) and $first >= 1 {
+        @if unitless($first) {
           $len: $first;
+
+        } @else {
+          $max: $first;
+        }
+
+      } @else if is-null($third) {
+
+        @if is-number($first) {
+
+          @if unitless($first) and $first >= 1 {
+            $len: $first;
+
+          } @else {
+            $min: $first;
+          }
 
         } @else {
           $min: $first;
         }
 
-      } @else {
-        $min: $first;
-      }
-
-      @if $len {
-        $max: $second;
-
-      } @else {
-        @if unitless($second) {
-          $len: $second;
+        @if $len {
+          $max: $second;
 
         } @else {
-          $max: $second;
-        }
-      }
+          @if unitless($second) {
+            $len: $second;
 
-    } @else {
-      $min: $first;
-      $len: $second;
-      $max: $third;
+          } @else {
+            $max: $second;
+          }
+        }
+
+      } @else {
+        $min: $first;
+        $len: $second;
+        $max: $third;
+      }
     }
   }
 
-  // define-min, define-max
-  // define-len
+  // move define-min, define-max, define-len to func
 
-  @if is-null($min) { // refactor // попробовать перенести под max
+  // @if $multi {
+  //   $len: 12;
+  // }
+
+  @if is-null($min) or $min == 'auto' {
     @if is-null($max) or unitless($max) {
-      $min: 'auto';
-
+      $min: 0.75;
     } @else {
       $min: $max;
-      $is-min-coefficient: is-number($min) and unitless($min);
     }
   }
 
-  @if is-null($mode) and $max and unitless($max) { // refactor
+  $is-min-coefficient: is-number($min) and unitless($min);
+
+  @if is-null($mode) and $max and unitless($max) { // refactor or remove
     $mode: 'percent';
   }
 
@@ -961,12 +996,8 @@
     $max: 1fr;
   }
 
-  @if $min == 'auto' or $is-min-coefficient {
-    $coefficient: 0.75;
-
-    @if $min != 'auto' {
-      $coefficient: $min;
-    }
+  @if $is-min-coefficient {
+    $coefficient: $min;
 
     @if type-of($max) == 'number' and unit($max) == 'px' {
       $min: strip-unit($max) * $coefficient;
@@ -1021,7 +1052,10 @@
   @return $calculeted;
 }
 
-@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false) {
+
+
+
+@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
 
 
   // $value on $columns
@@ -1187,7 +1221,7 @@
 
 
 
-  $calculeted: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser);
+  $calculeted: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser, $multi: $multi);
   $i: 1;
   @each $viewport, $template, $len, $grid-column in $calculeted { // refactor
 
