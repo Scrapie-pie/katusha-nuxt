@@ -462,20 +462,20 @@
 }
 
 
-// @mixin recurse-viewport($min, $len, $gap: 30) { // len четное replace on count
+// @mixin recurse-viewport($min, $cols, $gap: 30) { // len четное replace on count
 //   // mode even/odd
 //   // responsive-mode
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
-//   $start-responsive: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+//   $start-responsive: $min * $cols + $gap * ($cols - 1) + $padding + $scroll;
 //
-//   @if ($len > 2) {
-//     $len: $len - 2;
+//   @if ($cols > 2) {
+//     $cols: $cols - 2;
 //     @media (max-width: #{$start-responsive}px) {
-//       grid-template-columns: repeat($len, 1fr);
+//       grid-template-columns: repeat($cols, 1fr);
 //     }
 //
-//     @include recurse-viewport($min, $len);
+//     @include recurse-viewport($min, $cols);
 //
 //   } @else {
 //     @media (max-width: #{$start-responsive}px) {
@@ -485,32 +485,32 @@
 // }
 
 
-// @mixin recurse-viewport($min, $len, $gap: 30, $mode: 'even') { // len четное replace on count
+// @mixin recurse-viewport($min, $cols, $gap: 30, $mode: 'even') { // len четное replace on count
 //
-//   $gaps-sum: $gap * ($len - 1);
+//   $gaps-sum: $gap * ($cols - 1);
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
-//   $viewport: ($min * $len) + $gaps-sum + $padding + $scroll;
+//   $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
 //   $treshold: 2;
 //
 //   @if $mode == 'even' {
-//     @if $len % 2 != 0 {
-//       $len: $len + 1;
+//     @if $cols % 2 != 0 {
+//       $cols: $cols + 1;
 //     }
 //   } @else if $mode == 'odd' {
 //     $treshold: 3;
-//     @if $len % 2 == 0 {
-//       $len: $len + 1;
+//     @if $cols % 2 == 0 {
+//       $cols: $cols + 1;
 //     }
 //   }
 //
-//   @if ($len > $treshold) {
-//     $len: $len - 2;
+//   @if ($cols > $treshold) {
+//     $cols: $cols - 2;
 //     @media (max-width: #{$viewport}px) {
-//       grid-template-columns: repeat($len, 1fr);
+//       grid-template-columns: repeat($cols, 1fr);
 //     }
 //
-//     @include recurse-viewport($min, $len);
+//     @include recurse-viewport($min, $cols);
 //
 //   } @else {
 //     @media (max-width: #{$viewport}px) {
@@ -520,7 +520,7 @@
 // }
 
 
-// @function calc-viewport-templates($min, $len, $gap: 30, $mode: 'even') {
+// @function calc-viewport-templates($min, $cols, $gap: 30, $mode: 'even') {
 //   $calculeted: ();
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
@@ -529,33 +529,33 @@
 //   $treshold: 2;
 //
 //   @if $mode == 'even' {
-//     @if $len % 2 != 0 {
-//       $len: $len + 1;
+//     @if $cols % 2 != 0 {
+//       $cols: $cols + 1;
 //     }
 //   } @else if $mode == 'odd' {
 //     $treshold: 3;
-//     @if $len % 2 == 0 {
-//       $len: $len + 1;
+//     @if $cols % 2 == 0 {
+//       $cols: $cols + 1;
 //     }
 //   }
 //
-//   @while $len > $treshold {
-//     $gaps-sum: $gap * ($len - 1);
-//     $viewport: ($min * $len) + $gaps-sum + $padding + $scroll;
-//     $len: $len - 2;
-//     $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+//   @while $cols > $treshold {
+//     $gaps-sum: $gap * ($cols - 1);
+//     $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
+//     $cols: $cols - 2;
+//     $calculeted: append($calculeted, ($viewport, repeat($cols, 1fr), $cols));
 //   }
 //
-//   $viewport: ($min * $len) + $gaps-sum + $padding + $scroll;
-//   $calculeted: append($calculeted, ($viewport, 1fr, $len));
+//   $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
+//   $calculeted: append($calculeted, ($viewport, 1fr, $cols));
 //
 //   @return $calculeted;
 // }
 
-// @function calc-viewport-templates($min, $len, $gap: 30, $mode: 'even') {
+// @function calc-viewport-templates($min, $cols, $gap: 30, $mode: 'even') {
 //
 //   // $scroll: '(100vw - 100%)';
-//   // --d: #{$scroll} / #{$len};
+//   // --d: #{$scroll} / #{$cols};
 //
 //
 //   $calculeted: ();
@@ -565,27 +565,27 @@
 //   $viewport: null;
 //   $treshold: 2;
 //
-//   @while $len > $treshold {
-//     $gaps-sum: $gap * ($len - 1);
-//     $viewport: ($min * $len) + $gaps-sum + $padding + $scroll;
+//   @while $cols > $treshold {
+//     $gaps-sum: $gap * ($cols - 1);
+//     $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
 //
 //     @if $mode == 'even' {
-//       @if $len % 2 != 0 {
-//         $len: $len + 1;
+//       @if $cols % 2 != 0 {
+//         $cols: $cols + 1;
 //       }
 //     } @else if $mode == 'odd' {
-//       @if $len % 2 == 0 {
-//         $len: $len + 1;
+//       @if $cols % 2 == 0 {
+//         $cols: $cols + 1;
 //       }
 //       $treshold: 3;
 //     }
 //
-//     $len: $len - 2;
-//     $calculeted: append($calculeted, ($viewport, repeat($len, 1fr), $len));
+//     $cols: $cols - 2;
+//     $calculeted: append($calculeted, ($viewport, repeat($cols, 1fr), $cols));
 //   }
 //
-//   $viewport: ($min * $len) + $gaps-sum + $padding + $scroll;
-//   $calculeted: append($calculeted, ($viewport, 1fr, $len));
+//   $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
+//   $calculeted: append($calculeted, ($viewport, 1fr, $cols));
 //
 //   @return $calculeted;
 // }
@@ -594,12 +594,12 @@
 
 
 
-@mixin test-st-vt($min, $len, $gap: 30, $mode: 'even') {
+@mixin test-st-vt($min, $cols, $gap: 30, $mode: 'even') {
   $stretch: 'all';
 
   @if $stretch == 'all' {
     $i: 1;
-    $kaka: calc-viewport-templates($min, $len, $gap, $mode);
+    $kaka: calc-viewport-templates($min, $cols, $gap, $mode);
 
     @if $mode == 'even' {
 
@@ -607,10 +607,10 @@
 
     }
 
-    $len: len($kaka);
+    $cols: len($kaka);
     @each $viewport, $t, $count in $kaka {
       $min-vw: $i + 1; // refactor
-      @if ($min-vw > $len) {
+      @if ($min-vw > $cols) {
         $min-vw: 0; // refactor
       } @else {
         $min-vw: nth(nth($kaka, $min-vw), 1); // refactor
@@ -688,27 +688,27 @@
   $padding: 15 * 2;
   $scroll: 17.5;
 
-  //$len: 2;
+  //$cols: 2;
 
   // @if $mode == 'even' {
-  //   @if $len % 2 != 0 {
-  //     $len: $len - 1;
+  //   @if $cols % 2 != 0 {
+  //     $cols: $cols - 1;
   //   } @else {
-  //     $len: $len + 1;
+  //     $cols: $cols + 1;
   //   }
   // } @else if $mode == 'odd' {
   //   $treshold: 3;
   //
-  //   @if $len % 2 == 0 {
-  //     $len: $len + 1;
+  //   @if $cols % 2 == 0 {
+  //     $cols: $cols + 1;
   //   } @else {
-  //     $len: $len - 1;
+  //     $cols: $cols - 1;
   //   }
   // }
 
-  $len: $len + 1;
+  $cols: $cols + 1;
 
-  //$viewport: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+  //$viewport: $min * $cols + $gap * ($cols - 1) + $padding + $scroll;
 
   @media (max-width: #{$viewport}px) {
     & > div {
@@ -723,31 +723,31 @@
 }
 
 
-// @mixin stretch-last($min, $len, $gap: 30, $mode: 'even') { // len четное
+// @mixin stretch-last($min, $cols, $gap: 30, $mode: 'even') { // len четное
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
 //
-//   //$len: 2;
+//   //$cols: 2;
 //
 //   // @if $mode == 'even' {
-//   //   @if $len % 2 != 0 {
-//   //     $len: $len - 1;
+//   //   @if $cols % 2 != 0 {
+//   //     $cols: $cols - 1;
 //   //   } @else {
-//   //     $len: $len + 1;
+//   //     $cols: $cols + 1;
 //   //   }
 //   // } @else if $mode == 'odd' {
 //   //   $treshold: 3;
 //   //
-//   //   @if $len % 2 == 0 {
-//   //     $len: $len + 1;
+//   //   @if $cols % 2 == 0 {
+//   //     $cols: $cols + 1;
 //   //   } @else {
-//   //     $len: $len - 1;
+//   //     $cols: $cols - 1;
 //   //   }
 //   // }
 //
-//   $len: $len + 1;
+//   $cols: $cols + 1;
 //
-//   $viewport: $min * $len + $gap * ($len - 1) + $padding + $scroll;
+//   $viewport: $min * $cols + $gap * ($cols - 1) + $padding + $scroll;
 //
 //   @media (max-width: #{$viewport}px) {
 //     & > div {
@@ -762,22 +762,22 @@
 // }
 
 
-@function calc-grid-col-by-len($cols, $len, $decrement: 1) {
-  $col: math.div($cols, $len);
+@function calc-grid-col-by-len($cols, $items-in-row, $decrement: 1) {
+  $col: math.div($cols, $items-in-row);
 
-  @if $len <= 1 {
+  @if $cols <= 1 {
     @return $cols;
   }
 
   @if is-float($col) {
-    @return calc-grid-col-by-len($cols, $len - $decrement);
+    @return calc-grid-col-by-len($cols, $items-in-row - $decrement);
   } @else {
     @return $col;
   }
 }
 
-@function to-template($grid-cols, $len, $max, $mode) {
-  $template: repeat($len, minmax(auto, $max));
+@function to-template($grid-cols, $cols, $max, $mode) {
+  $template: repeat($cols, minmax(auto, $max));
 
   @if $mode == 'percent' {
     $template: repeat(auto-fit, $max);
@@ -804,14 +804,17 @@
 
 
 @function grid-destr-values($values, $multi: false) {
+  $items-data: ();
+  $minmax-pairs: [];
+
   $min: null;
   $max: null;
-  $in-row: null;
+  $cols: null;
 
   @if is-number($values) {
 
     @if not has-unit($values) {
-      $in-row: $values;
+      $cols: $values;
 
     } @else {
       $max: del-unit($values);
@@ -820,25 +823,34 @@
   } @else if is-list($values) {
 
     @if $multi {
-      $min: [];
-      $max: [];
 
       @each $value in $values {
 
         @if is-list($value) {
 
           @if len($value) > 1 {
-            $min: append($min, nth($value, 1));
-            $max: append($max, nth($value, 2));
+            $min: nth($value, 1);
+            $max: nth($value, 2);
 
           } @else {
-            $max: append($max, nth($value, 1));
+            $min: null;
+            $max: nth($value, 1);
           }
 
         } @else {
+          $min: null;
           $max: append($max, $value);
         }
+
+        $minmax-pairs: append($minmax-pairs, [$min, $max]);
       }
+
+      $cols: len($max);
+
+      $items-data: map.set($items-data, 'pairs', $minmax-pairs);
+      $items-data: map.set($items-data, 'len', $cols);
+
+      @return $items-data;
 
     } @else {
       $first:  soft-nth($values, 1);
@@ -848,7 +860,7 @@
       @if is-null($second) {
 
         @if not has-unit($first) {
-          $in-row: $first;
+          $cols: $first;
 
         } @else {
           $max: $first;
@@ -859,7 +871,7 @@
         @if is-number($first) {
 
           @if not has-unit($first) and $first >= 1 {
-            $in-row: $first;
+            $cols: $first;
 
           } @else {
             $min: $first;
@@ -869,12 +881,12 @@
           $min: $first;
         }
 
-        @if $in-row {
+        @if $cols {
           $max: $second;
 
         } @else {
           @if not has-unit($second) {
-            $in-row: $second;
+            $cols: $second;
 
           } @else {
             $max: $second;
@@ -883,94 +895,26 @@
 
       } @else {
         $min: $first;
-        $in-row: $second;
+        $cols: $second;
         $max: $third;
       }
     }
   }
 
-  @return [$min, $max, $in-row];
+
+  $minmax-pairs: append($minmax-pairs, [$min, $max]);
+
+  $items-data: map.set($items-data, 'pairs', $minmax-pairs);
+  $items-data: map.set($items-data, 'len', $cols);
+
+  @return $items-data;
+
+
+
+  //@return [$min, $max, $cols];
 }
 
-@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
-
-  // grid-col всему голова
-
-  $calculeted: [];  // Переделать в мапу
-
-  $container: del-unit(get-var(container));
-
-  $s: grid-destr-values($values, $multi);
-
-  $min: soft-nth($s, 1);
-  $max: soft-nth($s, 2);
-  $in-row: soft-nth($s, 3);
-
-  $padding: 15 * 2;
-  $scroll: 17.5;
-  $gaps-sum: null;
-  $viewport: null;
-  $grid-cols: null;
-  $grid-col: null;
-  $decrement: 1;
-  $treshold: 2;
-  $template: null;
-
-  @if $decreaser {
-    $decrement: 2;
-
-    @if $decreaser == 'odd' {
-      $treshold: 3;
-    }
-  }
-
-  @debug $s;
-
-
-  // move define-min, define-max, define-len to func
-
-  // @if $multi {
-  //   $in-row: 12;
-  // }
-
-
-
-  @if is-null($mode) and $max and unitless($max) { // refactor or remove
-    $mode: 'percent';
-  }
-
-  @if $max and $in-row { // тут высчитывать grid-col и объеденить все в функцию типа calc-grid-col-by-len()
-
-    @if $mode == 'percent' {
-      $in-row: math.div($in-row, $max);
-      $gaps-sum: $gap * ($in-row - 1);
-      $gaps-sum: to-number($gaps-sum, 'px');
-      $max: calc((100% - $gaps-sum) / $in-row); // похожее
-
-    } @else if $mode == 'span' {
-      $grid-cols: $in-row; // test
-      $in-row: math.div($in-row, $max);
-      $grid-col: calc-grid-col-by-len($grid-cols, $in-row, $decrement); // mb combine with something // с пикселями объеденить всему grid col приписать // похожее
-      $max: 1fr;
-    }
-
-  } @else if $max { // рассчет для пикселей
-    $in-row: 0;
-    $unit: unit($max);
-    $max: del-unit($max);
-
-    @while (($max + $gap) * ($in-row + 1)) - $gap < $container { // refactor // or <= // похожее
-      $in-row: $in-row + 1;
-    }
-
-    $max: to-number($max + $unit);
-
-  } @else if $in-row {
-    $max: 1fr;
-  }
-
-
-
+@function grid-calc-min($min, $max, $container, $cols) { // если null то без коэффициента сделать
   @if is-null($min) or $min == 'auto' {
 
     @if has-unit($max, 'px') {
@@ -988,9 +932,9 @@
       $min: del-unit($max) * $k;
 
     } @else {
-      $gaps-sum: $gap * ($in-row - 1);
-      $items-width: $container - $gaps-sum;
-      $item-width: math.div($container - $gaps-sum, $in-row); // должен уметь высчитывать для соло элемента, в общем считать по grid-col
+      $gaps-sum: $gap * ($cols - 1);
+      $items-width: $container - $gaps-sum; // items-width-sum
+      $item-width: math.div($container - $gaps-sum, $cols); // должен уметь высчитывать для соло элемента, в общем считать по grid-col
       //$item-width: $items-width / $grid-cols * $grid-col; <-- like this
       $min: $item-width * $k;
     }
@@ -998,45 +942,143 @@
     $min: to-number($min, 'px');
   }
 
-  $template: to-template($grid-cols, $in-row, $max, $mode);
-  $calculeted: append($calculeted, ($viewport, $template, $in-row, $grid-col));
-  $min-n: del-unit($min);
+  @return $min;
+}
 
-  @if $decreaser == 'even' {
-    @if $in-row % 2 != 0 {
-      $in-row: $in-row + 1;
-    }
-  } @else if $decreaser == 'odd' {
-    @if $in-row % 2 == 0 {
-      $in-row: $in-row + 1;
+@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
+
+  // grid-col всему голова
+
+  // $cols replace on $cols and will handle
+
+  // minmax entries
+
+  // для $mode добавить px, дернуть со smart-grid
+
+  $calculeted: [];  // Переделать в мапу
+
+  $container: del-unit(get-var(container));
+
+  $items-data: grid-destr-values($values, $multi);
+
+  $min-max-pairs: map.get($items-data, 'pairs');
+  $cols: map.get($items-data, 'len');
+
+  // $min:    nth($s, 1);
+  // $max:    nth($s, 2);
+  // $cols:    nth($s, 3);
+
+  $items-in-row: $cols; // temp ?
+
+  $padding: 15 * 2;
+  $scroll: 17.5;
+  $gaps-sum: null;
+  $viewport: null;
+  //$grid-cols: null;
+  $grid-col: null;
+  $decrement: 1;
+  $treshold: 2;
+  $template: null;
+
+  @if $decreaser {
+    $decrement: 2;
+
+    @if $decreaser == 'odd' {
+      $treshold: 3;
     }
   }
 
-  @while $in-row >= $treshold {
-    $gaps-sum: $gap * ($in-row - 1);
-    $viewport: ($min-n * $in-row) + $gaps-sum + $padding; // refactor test without padding
-    $in-row: $in-row - $decrement;
 
-    @if $in-row >= $treshold {
+  $min-max-pairs: nth($min-max-pairs, 1);
 
-      @if $mode == 'percent' {
-        $gaps-sum: $gap * ($in-row - 1);
-        $gaps-sum: to-number($gaps-sum, 'px');
-        $max: calc((100% - $gaps-sum) / $in-row);
+  $min: nth($min-max-pairs, 1);
+  $max: nth($min-max-pairs, 2);
+
+  @if len($min-max-pairs) > 1 and is-null($mode) and $max and unitless($max) { // refactor or remove
+    $mode: 'percent';
+  }
+
+
+  @if is-null($cols) {
+
+    @if has-unit($max, 'px') {
+      $cols: 0;
+      $max-n: del-unit($max);
+
+      @while (($max-n + $gap) * ($cols + 1)) - $gap < $container { // refactor // or <= // похожее
+        $cols: $cols + 1;
       }
 
-      $template: to-template($grid-cols, $in-row, $max, $mode);
+    } @else {
+      $cols: 12;
+    }
+  }
+
+  @if $max and not has-unit($max) {
+    $items-in-row: math.div($cols, $max);
+
+  } @else {
+    $items-in-row: $cols;
+  }
+
+  $grid-col: calc-grid-col-by-len($cols, $items-in-row, $decrement);
+  $gaps-sum: $gap * ($items-in-row - 1);
+
+  @if $mode == 'percent' {
+    $max: calc((100% - to-number($gaps-sum, 'px')) / $items-in-row);
+
+  } @else if $mode == 'span' {
+    $max: 1fr;
+
+  } @else if $mode == 'px' {
+
+  }
+
+  @if is-null($max) { // temp and refactor
+    $max: 1fr;
+  }
+
+  $min: grid-calc-min($min, $max, $container, $items-in-row);
+
+  $template: to-template($cols, $items-in-row, $max, $mode);
+  $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col, $max));
+  $min-n: del-unit($min); // must be mins-sum
+
+  @if $decreaser == 'even' {
+    @if $items-in-row % 2 != 0 {
+      $items-in-row: $items-in-row + 1;
+    }
+  } @else if $decreaser == 'odd' {
+    @if $items-in-row % 2 == 0 {
+      $items-in-row: $items-in-row + 1;
+    }
+  }
+
+  @while $items-in-row >= $treshold {
+    $gaps-sum: $gap * ($items-in-row - 1);
+    $viewport: ($min-n * $items-in-row) + $gaps-sum + $padding; // refactor test without padding
+    $items-in-row: $items-in-row - $decrement;
+
+    @if $items-in-row >= $treshold {
+
+      @if $mode == 'percent' {
+        $gaps-sum: $gap * ($items-in-row - 1);
+        $gaps-sum: to-number($gaps-sum, 'px');
+        $max: calc((100% - $gaps-sum) / $items-in-row);
+      }
+
+      $template: to-template($cols, $items-in-row, $max, $mode);
 
     } @else {
       $template: 1fr;
     }
 
     @if $mode == 'span' {
-      $grid-col: calc-grid-col-by-len($grid-cols, $in-row, $decrement);
-      $in-row: math.div($grid-cols, $grid-col);
+      $grid-col: calc-grid-col-by-len($cols, $items-in-row, $decrement);
+      $items-in-row: math.div($cols, $grid-col);
     }
 
-    $calculeted: append($calculeted, ($viewport, $template, $in-row, $grid-col));
+    $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col, $max));
   }
 
   @return $calculeted;
@@ -1053,33 +1095,33 @@
 
   /*
     1) сетка по 12 и тянем, если в $list есть fr
-    2) автоматически repeat($len)
+    2) автоматически repeat($cols)
     3) если $stretch сетка по нок
   */
 
 
 
-  //$list: null, $len: null,
+  //$list: null, $cols: null,
 
   $min: null;
-  $len: null;
+  $cols: null;
   $list: null;
 
   @if type-of($value) == 'number' {
     @if unit($value) == '' {
-      $len: $value;
+      $cols: $value;
     }
   } @else if type-of($value) == 'list' {
     @if len($value) == 2 {
       $min: del-unit(nth($value, 1));
-      $len: nth($value, 2);
+      $cols: nth($value, 2);
     }
   }
 
 
 
   $scroll: '(100vw - 100%)';
-  --d: #{$scroll} / #{$len};
+  --d: #{$scroll} / #{$cols};
 
   $max-width: del-unit(get-var(container)); // test without container
   $col: math.div($max-width, 12);
@@ -1094,7 +1136,7 @@
 
   $padding: 15;
 
-  //@error $len;
+  //@error $cols;
   @if $list {
     @each $value in $list {
 
@@ -1104,8 +1146,8 @@
         $max: to-smart-grid-value(nth($value, 2), $col);
         $mins: append($mins, $min);
 
-        $mins-scroll-fix: append($mins, fix-scroll($min, $len));
-        $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+        $mins-scroll-fix: append($mins, fix-scroll($min, $cols));
+        $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $cols), $max));
 
         $templates: append($templates, minmax($min, $max));
 
@@ -1113,8 +1155,8 @@
         $value: to-smart-grid-value($value, $col);
         $mins: append($mins, $value);
 
-        //$mins-scroll-fix: append($mins, fix-scroll($value, $len));
-        //$templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($value, $len), $max));
+        //$mins-scroll-fix: append($mins, fix-scroll($value, $cols));
+        //$templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($value, $cols), $max));
 
         $templates: append($templates, $value);
       }
@@ -1135,14 +1177,14 @@
 
   display: grid;
   //grid-template-columns: repeat(auto-fit, #{$templates});
-  //grid-template-columns: repeat($len, #{$templates});
+  //grid-template-columns: repeat($cols, #{$templates});
   //grid-template-columns: repeat(12, 1fr);
 
   @if $stretch {
     //grid-template-columns: repeat(12, 1fr); // Тогда Нок вместо 12
     & > * {
-      @if 12 % $len == 0 {
-        grid-column: span (12 / $len);
+      @if 12 % $cols == 0 {
+        grid-column: span (12 / $cols);
       } @else {
         @error 'ЗДАРОВА';
       }
@@ -1150,7 +1192,7 @@
 
 
   } @else {
-    //grid-template-columns: repeat($len, 1fr);
+    //grid-template-columns: repeat($cols, 1fr);
   }
 
   grid-column-gap: #{$gap}px;
@@ -1164,7 +1206,7 @@
     $padding: 0;
   }
 
-  //$start-responsive: sum($mins) + $gap * ($len - 1) + ($padding * 2);
+  //$start-responsive: sum($mins) + $gap * ($cols - 1) + ($padding * 2);
   //$fix-scroll-responsive: $start-responsive + 30;
 
 
@@ -1195,10 +1237,10 @@
   //
   //
 
-  //@include recurse-viewport(del-unit(nth(nth($list, 1), 1)), $len);
+  //@include recurse-viewport(del-unit(nth(nth($list, 1), 1)), $cols);
 
 
-  // @each $viewport, $template in calc-viewport-templates(del-unit(nth(nth($list, 1), 1)), $len) {
+  // @each $viewport, $template in calc-viewport-templates(del-unit(nth(nth($list, 1), 1)), $cols) {
   //
   //   @media (max-width: #{$viewport}px) {
   //     grid-template-columns: $template;
@@ -1213,12 +1255,17 @@
 
   $calculeted: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser, $multi: $multi);
   $i: 1;
-  @each $viewport, $template, $len, $grid-col in $calculeted { // refactor
+  @each $viewport, $template, $cols, $grid-col, $max in $calculeted { // refactor
 
 
     // move to calc-viewport-templates
 
     // refactor min max +1|-1 viewports
+
+    @if not is-number($max) or not has-unit($max, 'fr') { // temp
+      $grid-col: null;
+    }
+
 
     @if $i == 1 {
       $viewport-min: nth(nth($calculeted, 2), 1);
@@ -1278,11 +1325,11 @@
       //   }
 
 
-        // @if 12 % $len == 0 {
+        // @if 12 % $cols == 0 {
         //   grid-column: span (12 / $resp-len);
-        //   fucking: 12 % $len == 0;
+        //   fucking: 12 % $cols == 0;
         // } @else {
-        //   @while 12 % $len != 0 {
+        //   @while 12 % $cols != 0 {
         //     $resp-len: $resp-len - 1;
         //   }
         //   @debug '#{$viewport}px: Не знаю, как разместить #{$resp-len} элементов в сетку из 12, размещаю по #{$resp-len}';
@@ -1309,15 +1356,15 @@
   //   min-width: 400px;
   // }
 
-  //@include test-st-vt(del-unit(nth(nth($list, 1), 1)), $len);
+  //@include test-st-vt(del-unit(nth(nth($list, 1), 1)), $cols);
 
 
-  //@include stretch-last(del-unit(nth(nth($list, 1), 1)), $len);
+  //@include stretch-last(del-unit(nth(nth($list, 1), 1)), $cols);
 
 
   // @media (max-width: #{$start-responsive}px) {
   //   //grid-template-columns: 1fr;
-  //   @if ($len > 2) {
+  //   @if ($cols > 2) {
   //
   //
   //
@@ -1335,9 +1382,9 @@
 
 
 // @mixin smart-grid($list) { // replace on func
-//   $len: len($list);
+//   $cols: len($list);
 //   $scroll: '(100vw - 100%)';
-//   --d: #{$scroll} / #{$len};
+//   --d: #{$scroll} / #{$cols};
 //
 //   $max-width: del-unit(get-var(container)); // test without container
 //   $col: math.div($max-width, 12);
@@ -1360,8 +1407,8 @@
 //       $max: to-smart-grid-value(nth($value, 2), $col);
 //       $mins: append($mins, $min);
 //
-//       $mins-scroll-fix: append($mins, fix-scroll($min, $len));
-//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+//       $mins-scroll-fix: append($mins, fix-scroll($min, $cols));
+//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $cols), $max));
 //
 //       $templates: append($templates, minmax($min, $max));
 //
@@ -1396,7 +1443,7 @@
 //     $padding: 0;
 //   }
 //
-//   $start-responsive: sum($mins) + $gap * ($len - 1) + ($padding * 2);
+//   $start-responsive: sum($mins) + $gap * ($cols - 1) + ($padding * 2);
 //   $fix-scroll-responsive: $start-responsive + 30;
 //
 //   @media (max-width: #{$fix-scroll-responsive}px) {
@@ -1406,8 +1453,8 @@
 //
 //
 //   @media (max-width: #{$start-responsive}px) {
-//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
-//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $len)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $cols)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $cols)))));
 //     grid-template-columns: 1fr;
 //   }
 //
@@ -1422,7 +1469,7 @@
 //   $max-width: del-unit(get-var(container));
 //   $col: math.div($max-width, 12);
 //   $gap: 30;
-//   $len: len($list);
+//   $cols: len($list);
 //
 //   $templates: ();
 //   $templates-scroll-fix: ();
@@ -1434,16 +1481,16 @@
 //       $min: to-smart-grid-value(nth($value, 1), $col);
 //       $max: to-smart-grid-value(nth($value, 2), $col);
 //       $mins: append($mins, $min);
-//       $mins-scroll-fix: append($mins, fix-scroll($min, $len));
+//       $mins-scroll-fix: append($mins, fix-scroll($min, $cols));
 //       $templates: append($templates, minmax($min, $max));
-//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $len), $max));
+//       $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $cols), $max));
 //
 //     } @else {
 //       $value: to-smart-grid-value($value, $col);
 //       $mins: append($mins, $value);
-//       $mins-scroll-fix: append($mins, fix-scroll($value, $len));
+//       $mins-scroll-fix: append($mins, fix-scroll($value, $cols));
 //       $templates: append($templates, $value);
-//       $templates-scroll-fix: append($templates-scroll-fix, fix-scroll($value, $len));
+//       $templates-scroll-fix: append($templates-scroll-fix, fix-scroll($value, $cols));
 //     }
 //   }
 //
@@ -1464,16 +1511,16 @@
 //
 //   //overflow: hidden;
 //
-//   //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//   //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $cols)))));
 //
 //   @media (max-width: #{$max-width} + 'px') {
 //     grid-template-columns: repeat(auto-fit, #{$templates-scroll-fix});
-//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $cols)))));
 //   }
 //
-//   @media (max-width: sum($mins) + $gap * ($len - 1) + 'px') { // refactor count > 1
-//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $len)))));
-//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $len)))));
+//   @media (max-width: sum($mins) + $gap * ($cols - 1) + 'px') { // refactor count > 1
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins-scroll-fix, split(repeater(1fr, $cols)))));
+//     //grid-template-columns: repeat(auto-fit, parse-minmax(list.zip($mins, split(repeater(1fr, $cols)))));
 //     grid-template-columns: 1fr;
 //   }
 //
