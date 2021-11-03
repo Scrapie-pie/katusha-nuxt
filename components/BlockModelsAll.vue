@@ -68,8 +68,8 @@ export default {
 
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
-    @include smart-grid((100px, 12, 12/4), $mode: 'span'); // work
-    //@include smart-grid((130px, 12, 12/6), $mode: 'percent'); // work
+    //@include smart-grid((0.5, 12, 12/4), $mode: 'span'); // work
+    @include smart-grid((0.5, 12, 12/6), $mode: 'percent'); // work
   }
 
   .test-grid {

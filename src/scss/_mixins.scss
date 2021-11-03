@@ -811,7 +811,7 @@
   $max: null;
   $cols: null;
 
-  @if is-number($values) {
+  @if is-num($values) {
 
     @if not has-unit($values) {
       $cols: $values;
@@ -868,7 +868,7 @@
 
       } @else if is-null($third) {
 
-        @if is-number($first) {
+        @if is-num($first) {
 
           @if not has-unit($first) and $first >= 1 {
             $cols: $first;
@@ -1038,7 +1038,60 @@
     $max: 1fr;
   }
 
-  $min: grid-calc-min($min, $max, $container, $items-in-row);
+
+  //$k: 1;
+
+  @if is-null($min) {
+    $min: 1;
+
+  } @else if $min == 'auto' {
+    $min: 0.75;
+  }
+
+  @if not has-unit($min) {
+    $k: $min;
+
+    @if is-num($max) and has-unit($max, 'px') {
+      $min: del-unit($max) * $k;
+
+    } @else {
+      $width-items-sum: $container - $gaps-sum;
+      $width-item: math.div($width-items-sum, $items-in-row);
+      //$width-item: $items-width / $grid-cols * $grid-col; <-- like this
+      $min: $width-item * $k;
+    }
+
+    $min: to-number($min, 'px');
+  }
+
+
+
+  // @if is-null($min) or $min == 'auto' {
+  //
+  //   @if has-unit($max, 'px') {
+  //     $min: $max;
+  //
+  //   } @else {
+  //     $min: 0.75;
+  //   }
+  // }
+  //
+  // @if not has-unit($min) {
+  //   $k: $min;
+  //
+  //   @if has-unit($max, 'px') {
+  //     $min: del-unit($max) * $k;
+  //
+  //   } @else {
+  //     $gaps-sum: $gap * ($cols - 1);
+  //     $items-width: $container - $gaps-sum; // items-width-sum
+  //     $item-width: math.div($container - $gaps-sum, $cols); // должен уметь высчитывать для соло элемента, в общем считать по grid-col
+  //     //$item-width: $items-width / $grid-cols * $grid-col; <-- like this
+  //     $min: $item-width * $k;
+  //   }
+  //
+  //   $min: to-number($min, 'px');
+  // }
 
   $template: to-template($cols, $items-in-row, $max, $mode);
   $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col, $max));
@@ -1262,7 +1315,7 @@
 
     // refactor min max +1|-1 viewports
 
-    @if not is-number($max) or not has-unit($max, 'fr') { // temp
+    @if not is-num($max) or not has-unit($max, 'fr') { // temp
       $grid-col: null;
     }
 

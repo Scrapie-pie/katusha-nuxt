@@ -221,7 +221,7 @@
   @return type-of($value) == 'string';
 }
 
-@function is-number($value) {
+@function is-num($value) {
   @return type-of($value) == 'number';
 }
 
