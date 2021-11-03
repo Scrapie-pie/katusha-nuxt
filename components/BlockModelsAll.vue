@@ -26,6 +26,7 @@
       <div class="test-grid__container">
         <div>qweqweqe</div>
         <div>qweqweqe</div>
+        <div>qweqweqe</div>
       </div>
     </div>
   </div>
@@ -56,9 +57,9 @@ export default {
     //@include smart-grid((9, 100px)); //work
     //@include smart-grid(200px); //work
     //@include smart-grid((130px, 12/5)); // work
-    //@include smart-grid([0.5, 5, 200px]); // work
+    //@include smart-grid([100px, 5, 200px]); // work
 
-    //@include smart-grid((auto, 7)); //work
+    @include smart-grid((auto, 8)); //work
     //@include smart-grid((auto, 200px)); // work
     //@include smart-grid((auto, 5, 200px)); // work
 
@@ -69,7 +70,7 @@ export default {
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
     //@include smart-grid((0.5, 12, 12/4), $mode: 'span'); // work
-    @include smart-grid((0.5, 12, 12/6), $mode: 'percent'); // work
+    //@include smart-grid((0.5, 12, 12/4), $mode: 'percent'); // work
   }
 
   .test-grid {
@@ -80,7 +81,7 @@ export default {
       gap: 30px 35px;
       background-color: yellow;
 
-      //@include smart-grid([(100px, 200px), (100px, 200px), (100px, 200px)], $multi: true);
+      @include smart-grid([(300px, 3), (300px, 3), (300px, 6)], $multi: true); // work
     }
   }
 }
