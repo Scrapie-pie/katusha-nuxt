@@ -55,17 +55,15 @@ export default {
   }
 
   &__container {
-
     display: grid;
     grid-template-columns: minmax(300px, auto) minmax(300px, 910px);
-
-    //@include smart-grid((4f, 10f));
-
-    //align-items: center;
     justify-content: space-between;
     gap: 30px;
 
 
+    //@include smart-grid([(300px, 4), (300px, 7)], $multi: true);
+
+    // 490 910
   }
 
   .tempo {

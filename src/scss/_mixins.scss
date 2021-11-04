@@ -112,7 +112,7 @@
       #{$property}: $max-size; // mb should be rem ?
     }
   } @else if type-of($css-map-or-prop) == 'map' {
-    $calculeted: ();
+    $calculated: ();
 
     @each $property, $values in $css-map-or-prop {
       @if type-of($values) == 'list' {
@@ -122,7 +122,7 @@
           $pxValues: list.append($pxValues, to-unit($value, 'px'));
         }
 
-        $calculeted: map.set($calculeted, $property, #{calc-responsive($pxValues...)});
+        $calculated: map.set($calculated, $property, #{calc-responsive($pxValues...)});
       } @else {
          @error 'if u not want to use list as value then use to-unit out of to-responsive';
       }
@@ -135,7 +135,7 @@
     }
 
     @media (min-width: $min-vw) and (max-width: $max-vw) { // replace on custom
-      @each $property, $calcValue in $calculeted {
+      @each $property, $calcValue in $calculated {
         #{$property}: $calcValue;
       }
     }
@@ -404,26 +404,17 @@
 
 
 
-@function fr-to-px($value, $col) { // move to bottom and combine with px-to-unit
-  @return $col * del-unit($value);
+
+@function fix-scroll($value, $items-in-row) { // combine with smart-grid
+  //$scroll-fix: '((100vw - 100%) / #{$items-in-row})';
+  // $scroll-fix: '((100vw - 100%) / #{$items-in-row})';
+  //
+  // @return calc(#{$value} - var(--d));
+
+  @return calc($value - (100vw - 100%) / #{$items-in-row}));
 }
 
-@function to-smart-grid-value($value, $col) { // it's too
-  @if math.unit($value) == 'f' {
-    @return to-number(#{fr-to-px($value, $col)}px);
-  } @else {
-    @return to-number($value);
-  }
-}
-
-@function fix-scroll($value, $values-count) { // combine with smart-grid
-  //$scroll-fix: '((100vw - 100%) / #{$values-count})';
-  $scroll-fix: '((100vw - 100%) / #{$values-count})';
-
-  @return calc(#{$value} - var(--d));
-}
-
-@function to-minmax($values...) {
+@function to-minmax($values...) { // refactor
   @if len($values) == 1 {
     $value: nth($values, 1);
 
@@ -521,7 +512,7 @@
 
 
 // @function calc-viewport-templates($min, $cols, $gap: 30, $mode: 'even') {
-//   $calculeted: ();
+//   $calculated: ();
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
 //   $gaps-sum: null;
@@ -543,13 +534,13 @@
 //     $gaps-sum: $gap * ($cols - 1);
 //     $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
 //     $cols: $cols - 2;
-//     $calculeted: append($calculeted, ($viewport, repeat($cols, 1fr), $cols));
+//     $calculated: append($calculated, ($viewport, repeat($cols, 1fr), $cols));
 //   }
 //
 //   $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
-//   $calculeted: append($calculeted, ($viewport, 1fr, $cols));
+//   $calculated: append($calculated, ($viewport, 1fr, $cols));
 //
-//   @return $calculeted;
+//   @return $calculated;
 // }
 
 // @function calc-viewport-templates($min, $cols, $gap: 30, $mode: 'even') {
@@ -558,7 +549,7 @@
 //   // --d: #{$scroll} / #{$cols};
 //
 //
-//   $calculeted: ();
+//   $calculated: ();
 //   $padding: 15 * 2;
 //   $scroll: 17.5;
 //   $gaps-sum: null;
@@ -581,13 +572,13 @@
 //     }
 //
 //     $cols: $cols - 2;
-//     $calculeted: append($calculeted, ($viewport, repeat($cols, 1fr), $cols));
+//     $calculated: append($calculated, ($viewport, repeat($cols, 1fr), $cols));
 //   }
 //
 //   $viewport: ($min * $cols) + $gaps-sum + $padding + $scroll;
-//   $calculeted: append($calculeted, ($viewport, 1fr, $cols));
+//   $calculated: append($calculated, ($viewport, 1fr, $cols));
 //
-//   @return $calculeted;
+//   @return $calculated;
 // }
 
 
@@ -821,154 +812,22 @@
   @return unit($number) == $unit;
 }
 
-// @function is-num-has-unit($number, $unit) { // mb will improve
-//   @return type-of($number) == 'number' and unit($number) == $unit;
-// }
 
 
-@function grid-destr-values($values, $multi: false) {
-  $items-data: ();
-  $minmax-pairs: [];
+@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: 12) {
 
-  $min: null;
-  $max: null;
-  $cols: null;
-
-  @if is-num($values) {
-
-    @if not has-unit($values) {
-      $cols: $values;
-
-    } @else {
-      $max: del-unit($values);
-    }
-
-  } @else if is-list($values) {
-
-    @if $multi {
-
-      @each $value in $values {
-
-        @if is-list($value) {
-
-          @if len($value) > 1 {
-            $min: nth($value, 1);
-            $max: nth($value, 2);
-
-          } @else {
-            $min: null;
-            $max: nth($value, 1);
-          }
-
-        } @else {
-          $min: null;
-          $max: append($max, $value);
-        }
-
-        $minmax-pairs: append($minmax-pairs, [$min, $max]);
-      }
-
-      $cols: len($minmax-pairs);
-
-      $items-data: map.set($items-data, 'pairs', $minmax-pairs);
-      $items-data: map.set($items-data, 'len', $cols);
-
-      @return $items-data;
-
-    } @else {
-      $first:  soft-nth($values, 1);
-      $second: soft-nth($values, 2);
-      $third:  soft-nth($values, 3);
-
-      @if is-null($second) {
-
-        @if not has-unit($first) {
-          $cols: $first;
-
-        } @else {
-          $max: $first;
-        }
-
-      } @else if is-null($third) {
-
-        @if is-num($first) {
-
-          @if not has-unit($first) and $first >= 1 {
-            $cols: $first;
-
-          } @else {
-            $min: $first;
-          }
-
-        } @else {
-          $min: $first;
-        }
-
-        @if $cols {
-          $max: $second;
-
-        } @else {
-          @if not has-unit($second) {
-            $cols: $second;
-
-          } @else {
-            $max: $second;
-          }
-        }
-
-      } @else {
-        $min: $first;
-        $cols: $second;
-        $max: $third;
-      }
-    }
-  }
-
-
-  $minmax-pairs: append($minmax-pairs, [$min, $max]);
-
-  $items-data: map.set($items-data, 'pairs', $minmax-pairs);
-  $items-data: map.set($items-data, 'len', $cols);
-
-  @return $items-data;
-
-
-
-  //@return [$min, $max, $cols];
-}
-
-@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
+  // добавить min-viewport
+  // может и max-viewport
+  // возможно для fr не для multi добавить поддержку
 
   // на минимумах фиксить скролл
 
-  // grid-col всему голова
-
-  // $cols replace on $cols and will handle
-
-  // minmax entries
-
-  // для $mode добавить px, дернуть со smart-grid
-
-  // для mode == 'px' юзать calc-responsive() с перехода на контейнер
-
-  $calculeted: [];  // Переделать в мапу
-
-  $container: del-unit(get-var(container));
-
-  $items-data: grid-destr-values($values, $multi);
-
-  $min-max-pairs: map.get($items-data, 'pairs');
+  $calculated: [];  // Переделать в мапу
+  $min-max-pairs: [];
   $transformed-min-max-pairs: [];
-
-  $cols: map.get($items-data, 'len');
-  $is-one-pair: len($min-max-pairs) == 1;
-
-  // $min:    nth($s, 1);
-  // $max:    nth($s, 2);
-  // $cols:    nth($s, 3);
-
+  $is-one-pair: true;
   $items-in-row: $cols; // temp ?
-
+  $container: del-unit(get-var(container));
   $padding: 15 * 2;
   $scroll: 17.5;
   $gaps-sum: null;
@@ -978,6 +837,44 @@
   $treshold: 2;
   $template: null;
   $average-min: null;
+
+  @if is-num($values) {
+
+    @if not has-unit($values) {
+      $cols: $values;
+
+    } @else {
+      //@error '';
+    }
+
+  } @else if is-list($values) {
+
+    @each $value in $values {
+
+      @if is-list($value) {
+        $is-one-pair: false;
+      }
+    }
+
+    @if $is-one-pair {
+      $values: [$values];
+    }
+
+    @each $list in $values {
+
+      @if len($list) > 1 {
+        $min-max-pairs: append($min-max-pairs, (nth($list, 1), nth($list, 2)));
+
+      } @else {
+        $min-max-pairs: append($min-max-pairs, ('auto', nth($list, 1)));
+      }
+    }
+
+  } @else {
+    //@error '';
+  }
+
+  $is-one-pair: len($min-max-pairs) == 1;
 
   @if $decreaser {
     $decrement: 2;
@@ -1075,9 +972,6 @@
   }
 
 
-  @debug $cols;
-
-  @debug $transformed-min-max-pairs;
 
   // @if $is-one-pair {
   //   $min: nth(nth($min-max-pairs, 1), 1);
@@ -1139,13 +1033,10 @@
   }
 
 
-  @debug $transformed-min-max-pairs;
-
 
   $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode); // Добавить репит для повторяющихся шаблонов
-  $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col));
+  $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
 
-  @debug $template;
 
   @if $is-one-pair {
     $min: nth(nth($transformed-min-max-pairs, 1), 1);
@@ -1175,8 +1066,6 @@
     }
   }
 
-  @debug $items-in-row;
-  @debug $average-min;
 
   @if $is-one-pair { // temp
 
@@ -1214,7 +1103,7 @@
         $items-in-row: math.div($cols, $grid-col);
       }
 
-      $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col));
+      $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
     }
 
   } @else { // temp
@@ -1222,13 +1111,13 @@
     $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding; // refactor test without padding
     $items-in-row: 1;
     $template: 1fr;
-    $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col));
+    $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
   }
 
   @if $mode == 'px' and $is-one-pair { // refactor // template already present
     $temp-i: 1;
 
-    $first-val: nth($calculeted, 1);
+    $first-val: nth($calculated, 1);
 
     $pair: nth($transformed-min-max-pairs, 1);
     $min: nth($pair, 1);
@@ -1238,10 +1127,10 @@
     $items-in-row: nth($first-val, 3);
     $grid-col: nth($first-val, 4);
 
-    $calculeted: insert-nth($calculeted, 2, ($viewport, $template, $items-in-row, $grid-col));
+    $calculated: insert-nth($calculated, 2, ($viewport, $template, $items-in-row, $grid-col));
 
 
-    @while $temp-i < len($calculeted) {
+    @while $temp-i < len($calculated) {
 
       @if $temp-i > 1 {
         $pair: nth($transformed-min-max-pairs, 1);
@@ -1251,11 +1140,11 @@
 
 
 
-        $temp: nth($calculeted, $temp-i);
+        $temp: nth($calculated, $temp-i);
         $viewport: nth($temp, 1);
         $items-in-row: nth($temp, 3);
 
-        $prev-items-in-row: nth(nth($calculeted, $temp-i - 1), 3);
+        $prev-items-in-row: nth(nth($calculated, $temp-i - 1), 3);
 
 
         $gaps-sum: $gap * ($items-in-row - 1);
@@ -1268,203 +1157,52 @@
         $max: $max - (17.5 / $items-in-row);
 
         $grid-col: nth($temp, 4);
-        $next-viewport: nth(nth($calculeted, $temp-i + 1), 1);
+        $next-viewport: nth(nth($calculated, $temp-i + 1), 1);
         $template: calc-responsive($min, $max, to-number($next-viewport, 'px'), to-number($viewport, 'px'));
         $template: repeat(auto-fit, minmax($min, $template));
-        $calculeted: replace-nth($calculeted, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
+        $calculated: replace-nth($calculated, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
       }
 
       $temp-i: $temp-i + 1;
     }
   }
 
-  @debug $calculeted;
+  @debug $calculated;
 
-  @return $calculeted;
+  @return $calculated;
 }
 
 
 
 
-@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
+@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false, $cols: 12) {
 
+  //$scroll: '(100vw - 100%)';
+  //--d: #{$scroll} / #{$cols};
 
-  // $value on $columns
-
-
-  /*
-    1) сетка по 12 и тянем, если в $list есть fr
-    2) автоматически repeat($cols)
-    3) если $stretch сетка по нок
-  */
-
-
-
-  //$list: null, $cols: null,
-
-  $min: null;
-  $cols: null;
-  $list: null;
-
-  @if type-of($value) == 'number' {
-    @if unit($value) == '' {
-      $cols: $value;
-    }
-  } @else if type-of($value) == 'list' {
-    @if len($value) == 2 {
-      $min: del-unit(nth($value, 1));
-      $cols: nth($value, 2);
-    }
-  }
-
-
-
-  $scroll: '(100vw - 100%)';
-  --d: #{$scroll} / #{$cols};
-
-  $max-width: del-unit(get-var(container)); // test without container
-  $col: math.div($max-width, 12);
   $gap: 30;
-
-
-  $templates: ();
-  $mins: ();
-
-  $templates-scroll-fix: ();
-  $mins-scroll-fix: ();
-
   $padding: 15;
 
-  //@error $cols;
-  @if $list {
-    @each $value in $list {
-
-      @if (type-of($value) == 'list') {
-        $min: to-smart-grid-value(nth($value, 1), $col);
-
-        $max: to-smart-grid-value(nth($value, 2), $col);
-        $mins: append($mins, $min);
-
-        $mins-scroll-fix: append($mins, fix-scroll($min, $cols));
-        $templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($min, $cols), $max));
-
-        $templates: append($templates, minmax($min, $max));
-
-      } @else {
-        $value: to-smart-grid-value($value, $col);
-        $mins: append($mins, $value);
-
-        //$mins-scroll-fix: append($mins, fix-scroll($value, $cols));
-        //$templates-scroll-fix: append($templates-scroll-fix, minmax(fix-scroll($value, $cols), $max));
-
-        $templates: append($templates, $value);
-      }
-    }
-  }
-
-
-  // @error $mins;
-
-  //$mins: sum($mins);
-
-
-  //$padding: 0;
-
-  width: 100%;
-  //max-width: #{$max-width}px; // scroll fix
-  //max-width: calc(#{$max-width}px + 30px); // scroll fix
 
   display: grid;
-  //grid-template-columns: repeat(auto-fit, #{$templates});
-  //grid-template-columns: repeat($cols, #{$templates});
-  //grid-template-columns: repeat(12, 1fr);
-
-  @if $stretch {
-    //grid-template-columns: repeat(12, 1fr); // Тогда Нок вместо 12
-    & > * {
-      @if 12 % $cols == 0 {
-        grid-column: span (12 / $cols);
-      } @else {
-        @error 'ЗДАРОВА';
-      }
-    }
-
-
-  } @else {
-    //grid-template-columns: repeat($cols, 1fr);
-  }
-
   grid-column-gap: #{$gap}px;
   justify-content: space-between;
   margin: 0 auto;
 
-  @if $padding {
+  @if $padding { // refactor // Можно ли вычислять без паддинга?
     padding-left: #{$padding}px;
     padding-right: #{$padding}px;
   } @else {
     $padding: 0;
   }
 
-  //$start-responsive: sum($mins) + $gap * ($cols - 1) + ($padding * 2);
-  //$fix-scroll-responsive: $start-responsive + 30;
-
-
-
-  // add param even/odd
-  // & > div {
-  //   &:last-child {
-  //     grid-column: 1/-1;
-  //   }
-  //   &:nth-child(2n + 2) {
-  //     grid-column: auto;
-  //   }
-  // }
-
-
-  // grid-template-rows: auto;
-  //
-  // grid-column: span 4;
-  //   min-width: 320px;
-  //
-  // grid-column: span 8/-1;
-  //     grid-row: 2/span 1;
-
-  // @media (max-width: #{$fix-scroll-responsive}px) {
-  //   grid-template-columns: repeat(auto-fit, #{$templates-scroll-fix});
-  // }
-  //
-  //
-  //
-
-  //@include recurse-viewport(del-unit(nth(nth($list, 1), 1)), $cols);
-
-
-  // @each $viewport, $template in calc-viewport-templates(del-unit(nth(nth($list, 1), 1)), $cols) {
-  //
-  //   @media (max-width: #{$viewport}px) {
-  //     grid-template-columns: $template;
-  //     //add param even/odd
-  //
-  //   }
-  // }
-
-
-
-
-
-  $calculeted: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser, $multi: $multi);
+  $calculated: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser, $cols: $cols);
   $i: 1;
-  @each $viewport, $template, $cols, $grid-col, $max in $calculeted { // refactor
 
-
-    // move to calc-viewport-templates
-
-    // refactor min max +1|-1 viewports
-
-
+  @each $viewport, $template, $cols, $grid-col, $max in $calculated { // refactor
 
     @if $i == 1 {
-      $viewport-min: nth(nth($calculeted, 2), 1);
+      $viewport-min: nth(nth($calculated, 2), 1);
 
       @media (min-width: #{$viewport-min}px) {
         grid-template-columns: $template;
@@ -1476,8 +1214,8 @@
         }
       }
 
-    } @else if $i != len($calculeted) {
-      $viewport-min: nth(nth($calculeted, $i + 1), 1);
+    } @else if $i != len($calculated) {
+      $viewport-min: nth(nth($calculated, $i + 1), 1);
       $viewport-max: $viewport;
 
       @media (min-width: #{$viewport-min}px) and (max-width: #{$viewport-max}px) {
@@ -1505,75 +1243,17 @@
     }
 
     $i: $i + 1;
-
-
-      // & > * {
-      //   @if 12 / $resp-len != math.floor(12 / $resp-len) {
-      //     $source-len: $resp-len;
-      //     @while 12 / $resp-len != math.floor(12 / $resp-len) {
-      //       $resp-len: $resp-len - 1;
-      //     }
-      //     @debug '#{$viewport}px: Не знаю, как разместить #{$source-len} элементов в сетку из 12, размещаю по #{$resp-len}';
-      //
-      //     grid-column: span (12 / $resp-len);
-      //   } @else {
-      //     grid-column: span (12 / $resp-len);
-      //   }
-
-
-        // @if 12 % $cols == 0 {
-        //   grid-column: span (12 / $resp-len);
-        //   fucking: 12 % $cols == 0;
-        // } @else {
-        //   @while 12 % $cols != 0 {
-        //     $resp-len: $resp-len - 1;
-        //   }
-        //   @debug '#{$viewport}px: Не знаю, как разместить #{$resp-len} элементов в сетку из 12, размещаю по #{$resp-len}';
-        //   grid-column: span (12 / $resp-len);
-        //   defucking: (12 / $resp-len);
-        // }
-
-
-
-      //}
-      //add param even/odd
-      //$i: $i + 1;
-
   }
-
-
-
-  //grid-template-columns: repeat(12, minmax(calc((100% - (100vw - 100%)) / 3), 1fr));
-  //grid-template-columns: repeat(12, minmax(calc(100% / 3), 4fr));
-  // grid-template-columns: repeat(12, 1fr);
-  //
-  // & > * {
-  //   grid-column: span 4;
-  //   min-width: 400px;
-  // }
-
-  //@include test-st-vt(del-unit(nth(nth($list, 1), 1)), $cols);
-
-
-  //@include stretch-last(del-unit(nth(nth($list, 1), 1)), $cols);
-
-
-  // @media (max-width: #{$start-responsive}px) {
-  //   //grid-template-columns: 1fr;
-  //   @if ($cols > 2) {
-  //
-  //
-  //
-  //
-  //   } @else {
-  //     grid-template-columns: 1fr;
-  //   }
-  // }
 
   & > * {
     background-color: #6ba9fb;
   }
 }
+
+
+
+
+
 
 
 
