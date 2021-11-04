@@ -59,7 +59,7 @@ export default {
     //@include smart-grid((130px, 12/5)); // work
     //@include smart-grid([100px, 5, 200px]); // work
 
-    @include smart-grid((auto, 8)); //work
+    //@include smart-grid((auto, 8)); //work
     //@include smart-grid((auto, 200px)); // work
     //@include smart-grid((auto, 5, 200px)); // work
 
@@ -71,6 +71,9 @@ export default {
 
     //@include smart-grid((0.5, 12, 12/4), $mode: 'span'); // work
     //@include smart-grid((0.5, 12, 12/4), $mode: 'percent'); // work
+    @include smart-grid((0.5, 12, 3), $mode: 'px'); // work
+
+    // возможно если меньше единицы, то типа тянуть колонку, если больше, то по сколько вмещать
   }
 
   .test-grid {
@@ -81,7 +84,9 @@ export default {
       gap: 30px 35px;
       background-color: yellow;
 
-      @include smart-grid([(300px, 3), (300px, 3), (300px, 6)], $multi: true); // work
+      //@include smart-grid([(300px, 3), (300px, 3), (300px, 6)], $multi: true); // work
+
+      @include smart-grid([(100px, 200px), (300px, 3), (300px, 6)], $multi: true); // work
     }
   }
 }

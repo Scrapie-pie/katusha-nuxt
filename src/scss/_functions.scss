@@ -110,7 +110,32 @@
   @return to-fixed(to-unit($px, 'rem'), 3);
 }
 
-@function calc-responsive($min-size, $max-size, $min-vw: get-var(breakpoint, xs), $max-vw: get-var(container)) { // mb move defaults to to-responsive
+@function calc-responsive($min-size, $max-size, $min-vw: get-var(breakpoint, xs), $max-vw: get-var(container)) { // mb move defaults to to-responsive // ТУТ to-unit() в пиксели переводить
+
+  @if not has-unit($min-size) { // нужно ли?
+    $min-size: to-number($min-size, 'px');
+  } @else {
+    $min-size: to-unit($min-size, 'px')
+  }
+
+  @if not has-unit($max-size) { // нужно ли?
+    $max-size: to-number($max-size, 'px');
+  } @else {
+    $max-size: to-unit($max-size, 'px')
+  }
+
+  @if not has-unit($min-vw) { // нужно ли?
+    $min-vw: to-number($min-vw, 'px');
+  } @else {
+    $min-vw: to-unit($min-vw, 'px')
+  }
+
+  @if not has-unit($max-vw) { // нужно ли?
+    $max-vw: to-number($max-vw, 'px');
+  } @else {
+    $max-vw: to-unit($max-vw, 'px')
+  }
+
   @return calc(#{$min-size} + #{del-unit($max-size - $min-size)} * ((100vw - #{$min-vw}) / #{del-unit($max-vw - $min-vw)}));
 }
 
@@ -295,6 +320,165 @@
         $result#{$e}
       );
     }
+  }
+
+  @return $result;
+}
+
+@function prepend($list, $value) {
+  @return join($value, $list);
+}
+
+@function insert-nth($list, $index, $value) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @warn "$index: #{quote($index)} is not a number for `insert-nth`.";
+  } @else if $index < 1 {
+    @warn "List index 0 must be a non-zero integer for `insert-nth`";
+  } @else if $index > length($list) {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `insert-nth'.";
+  } @else {
+    $result: ();
+
+    @for $i from 1 through length($list) {
+      @if $i == $index {
+        $result: append($result, $value);
+      }
+
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+@function first($list) {
+  @return nth($list, 1);
+}
+
+@function last($list) {
+  @return nth($list, length($list));
+}
+
+@function last-index($list, $value) {
+  $index: null;
+
+  @for $i from 1 through length($list) {
+    @if nth($list, $i) == $value {
+      $index: $i;
+    }
+  }
+
+  @return $index;
+}
+
+/**
+ * Last-index v2
+ * Less beautiful code
+ * Better performance
+ */
+@function last-index($list, $value) {
+  @for $i from length($list) * -1 through -1 {
+    @if nth($list, abs($i)) == $value {
+      @return abs($i);
+    }
+  }
+
+  @return null;
+}
+
+@function remove($list, $value, $recursive: false) {
+  $result: ();
+
+  @for $i from 1 through length($list) {
+    @if type-of(nth($list, $i)) == list and $recursive {
+      $result: append($result, remove(nth($list, $i), $value, $recursive));
+    } @else if nth($list, $i) != $value {
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+@function remove-nth($list, $index) {
+  $result: null;
+
+  @if type-of($index) != number {
+    @warn "$index: #{quote($index)} is not a number for `remove-nth`.";
+  } @else if $index == 0 {
+    @warn "List index 0 must be a non-zero integer for `remove-nth`.";
+  } @else if abs($index) > length($list) {
+    @warn "List index is #{$index} but list is only #{length($list)} item long for `remove-nth`.";
+  } @else {
+    $result: ();
+    $index: if($index < 0, length($list) + $index + 1, $index);
+
+    @for $i from 1 through length($list) {
+      @if $i != $index {
+        $result: append($result, nth($list, $i));
+      }
+    }
+  }
+
+  @return $result;
+}
+
+@function reverse($list, $recursive: false) {
+  $result: ();
+
+  @for $i from length($list) * -1 through -1 {
+    @if type-of(nth($list, abs($i))) == list and $recursive {
+      $result: append($result, reverse(nth($list, abs($i)), $recursive));
+    } @else {
+      $result: append($result, nth($list, abs($i)));
+    }
+  }
+
+  @return $result;
+}
+
+
+@function slice($list, $start: 1, $end: length($list)) {
+  $result: null;
+
+  @if type-of($start) != number or type-of($end) != number {
+    @warn "Either $start or $end are not a number for `slice`.";
+  }
+
+  @else if $start > $end {
+    @warn "The start index has to be lesser than or equals to the end index for `slice`.";
+  }
+
+  @else if $start < 1 or $end < 1 {
+    @warn "List indexes must be non-zero integers for `slice`.";
+  }
+
+  @else if $start > length($list) {
+    @warn "List index is #{$start} but list is only #{length($list)} item long for `slice`.";
+  }
+
+  @else if $end > length($list) {
+    @warn "List index is #{$end} but list is only #{length($list)} item long for `slice`.";
+  }
+
+  @else {
+    $result: ();
+
+    @for $i from $start through $end {
+      $result: append($result, nth($list, $i));
+    }
+  }
+
+  @return $result;
+}
+
+@function loop($list, $value: 1) {
+  $result: ();
+
+  @for $i from 0 to length($list) {
+    $result: append($result, nth($list, ($i - $value) % length($list) + 1));
   }
 
   @return $result;

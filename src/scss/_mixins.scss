@@ -937,54 +937,6 @@
   //@return [$min, $max, $cols];
 }
 
-@function grid-calc-min($min, $max, $container, $cols) { // если null то без коэффициента сделать
-  @if is-null($min) or $min == 'auto' {
-
-    @if has-unit($max, 'px') {
-      $min: $max;
-
-    } @else {
-      $min: 0.75;
-    }
-  }
-
-  @if not has-unit($min) {
-    $k: $min;
-
-    @if has-unit($max, 'px') {
-      $min: del-unit($max) * $k;
-
-    } @else {
-      $gaps-sum: $gap * ($cols - 1);
-      $items-width: $container - $gaps-sum; // items-width-sum
-      $item-width: math.div($container - $gaps-sum, $cols); // должен уметь высчитывать для соло элемента, в общем считать по grid-col
-      //$item-width: $items-width / $grid-cols * $grid-col; <-- like this
-      $min: $item-width * $k;
-    }
-
-    $min: to-number($min, 'px');
-  }
-
-  @return $min;
-}
-
-@function grid-define-cols($max, $gap, $container) {
-  $cols: 0;
-
-  @if has-unit($max, 'px') {
-    $max-n: del-unit($max);
-
-    @while (($max-n + $gap) * ($cols + 1)) - $gap < $container { // refactor // or <= // похожее
-      $cols: $cols + 1;
-    }
-
-  } @else {
-    $cols: 12;
-  }
-
-  @return $cols;
-}
-
 @function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $multi: false) {
 
   // на минимумах фиксить скролл
@@ -996,6 +948,8 @@
   // minmax entries
 
   // для $mode добавить px, дернуть со smart-grid
+
+  // для mode == 'px' юзать calc-responsive() с перехода на контейнер
 
   $calculeted: [];  // Переделать в мапу
 
@@ -1098,13 +1052,18 @@
       @if $mode == 'percent' {
         //$max: calc((100% - to-number($gaps-sum, 'px')) / $items-in-row); // calc((100% - to-number($gaps-sum, 'px')) / $cols / max);
         $filled-cols: math.div($cols, $max);
+        //$items-width: 100% - to-number($gaps-sum, 'px');
         $max: calc((100% - to-number($gaps-sum, 'px')) / $filled-cols); // calc((100% - to-number($gaps-sum, 'px')) / $cols / max);
 
       } @else if $mode == 'span' {
         $max: 1fr;
 
-      } @else if $mode == 'px' {
-
+      } @else if $mode == 'px' { // допилить
+        $width-items-sum: $container - $gaps-sum;
+        $col: math.div($width-items-sum, $cols);
+        $max: $col * $max;
+        $max: to-number($max, 'px');
+        //$max: calc-responsive(180px, $max, 840px);
       }
     }
 
@@ -1115,6 +1074,10 @@
     $transformed-min-max-pairs: append($transformed-min-max-pairs, [$min, $max]);
   }
 
+
+  @debug $cols;
+
+  @debug $transformed-min-max-pairs;
 
   // @if $is-one-pair {
   //   $min: nth(nth($min-max-pairs, 1), 1);
@@ -1216,6 +1179,7 @@
   @debug $average-min;
 
   @if $is-one-pair { // temp
+
     @while $items-in-row >= $treshold { // refactor
       $gaps-sum: $gap * ($items-in-row - 1);
       $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding; // refactor test without padding
@@ -1226,15 +1190,20 @@
         $min: nth($pair, 1);
         $max: nth($pair, 2);
 
-        @if $mode == 'percent' {
+        @if $mode == 'percent' { // refactor // transform $transformed-min-max-pairs // MOVE TO to-template()
           $gaps-sum: $gap * ($items-in-row - 1);
           $gaps-sum: to-number($gaps-sum, 'px');
           $max: calc((100% - $gaps-sum) / $items-in-row); // ($col / $max) instead of $items-in-row
+
+        } @else if $mode == 'px' { // to-template можно minmax() без минимума
+
+
+          //$max: calc-responsive($min, $max, $viewport);
         }
 
         $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, [$min, $max]);
 
-        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode);
+        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode); // возможно всю логику выше перенести в to-template()
 
       } @else {
         $template: 1fr;
@@ -1256,10 +1225,59 @@
     $calculeted: append($calculeted, ($viewport, $template, $items-in-row, $grid-col));
   }
 
+  @if $mode == 'px' and $is-one-pair { // refactor // template already present
+    $temp-i: 1;
+
+    $first-val: nth($calculeted, 1);
+
+    $pair: nth($transformed-min-max-pairs, 1);
+    $min: nth($pair, 1);
+    $max: nth($pair, 2);
+    $viewport: $container + $padding;
+    $template: nth($first-val, 2);
+    $items-in-row: nth($first-val, 3);
+    $grid-col: nth($first-val, 4);
+
+    $calculeted: insert-nth($calculeted, 2, ($viewport, $template, $items-in-row, $grid-col));
 
 
-  @debug 'viewport:';
-  @debug $viewport;
+    @while $temp-i < len($calculeted) {
+
+      @if $temp-i > 1 {
+        $pair: nth($transformed-min-max-pairs, 1);
+        $min: nth($pair, 1);
+        $max: nth($pair, 2);
+
+
+
+
+        $temp: nth($calculeted, $temp-i);
+        $viewport: nth($temp, 1);
+        $items-in-row: nth($temp, 3);
+
+        $prev-items-in-row: nth(nth($calculeted, $temp-i - 1), 3);
+
+
+        $gaps-sum: $gap * ($items-in-row - 1);
+        $gaps-sum: to-number($gaps-sum, 'px');
+
+        $max: ($viewport - $gaps-sum - $padding) / $items-in-row;
+
+
+        $min: $min - (17.5 / $items-in-row);
+        $max: $max - (17.5 / $items-in-row);
+
+        $grid-col: nth($temp, 4);
+        $next-viewport: nth(nth($calculeted, $temp-i + 1), 1);
+        $template: calc-responsive($min, $max, to-number($next-viewport, 'px'), to-number($viewport, 'px'));
+        $template: repeat(auto-fit, minmax($min, $template));
+        $calculeted: replace-nth($calculeted, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
+      }
+
+      $temp-i: $temp-i + 1;
+    }
+  }
+
   @debug $calculeted;
 
   @return $calculeted;
