@@ -52,10 +52,11 @@ export default {
     gap: 30px 35px;
     background-color: blue;
 
-    //@include smart-grid(8); //work <-- $cols: 8;
+    //@include smart-grid(8); //work
+    //@include smart-grid((100px, null), $cols: 8); // work
 
-
-    //@include smart-grid((100px, null), $cols: 8);
+    //@include smart-grid((100px, 150px), $cols: 8); // work
+    //@include smart-grid((100px, 300px)); // work
 
     //@include smart-grid((110px, 9)); //work
     //@include smart-grid((9, 100px)); //work
@@ -73,9 +74,11 @@ export default {
 
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
-    //@include smart-grid((0.5, 12, 12/4), $mode: 'span'); // work
-    @include smart-grid((0.5, 3), $mode: 'percent'); // work
+    @include smart-grid((0.5, 3), $mode: 'span'); // work
+    //@include smart-grid((0.5, 3), $mode: 'percent'); // work
     //@include smart-grid((0.5, 3), $mode: 'px'); // work
+
+    //@include smart-grid((0.5, 3)); // work
 
     // возможно если меньше единицы, то типа тянуть колонку, если больше, то по сколько вмещать
 
@@ -92,9 +95,9 @@ export default {
       gap: 30px 35px;
       background-color: yellow;
 
-      //@include smart-grid((50px, 100px) (300px, 3) (300px, 6), $mode: 'px'); // work
+      //@include smart-grid((100px, 100px) (200px, 3) (200px, 6), $mode: 'percent'); // work
 
-      //@include smart-grid([(100px, 200px), (300px, 3), (300px, 6)], $mode: 'span', $multi: true); // does not work
+      //@include smart-grid([(100px, 200px), (300px, 3), (300px, 6)], $mode: 'span'); // does not work
     }
   }
 }

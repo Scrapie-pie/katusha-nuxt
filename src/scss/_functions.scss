@@ -163,15 +163,15 @@
   @return $result;
 }
 
-@function len($list) {
-  $result: 0;
-
-  @each $item in $list {
-    $result: $result + 1;
-  }
-
-  @return $result;
-}
+// @function len($list) {
+//   $result: 0;
+//
+//   @each $item in $list {
+//     $result: $result + 1;
+//   }
+//
+//   @return $result;
+// }
 
 @function to-fixed($float, $digits: 4) {
   $pow: math.pow(10, $digits);
@@ -207,7 +207,7 @@
 }
 
 @function soft-nth($list, $i) {
-  @if $i > len($list) {
+  @if $i > length($list) {
     @return null;
   } @else {
     @return nth($list, $i);
@@ -482,4 +482,23 @@
   }
 
   @return $result;
+}
+
+@function add-indexes($list, $recurse: false) {
+  $wrapper: [];
+  $i: 1;
+
+  @each $value in $list {
+
+    @if $recurse { // test
+      @if is-list($value) {
+        $value: add-indexes($value, $recurse);
+      }
+    }
+
+    $wrapper: append($wrapper, ($value, $i));
+    $i: $i + 1;
+  }
+
+  @return $wrapper;
 }

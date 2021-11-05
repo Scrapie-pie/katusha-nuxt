@@ -411,11 +411,11 @@
   //
   // @return calc(#{$value} - var(--d));
 
-  @return calc($value - (100vw - 100%) / #{$items-in-row}));
+  @return calc($value - (100vw - 100%) / #{$items-in-row});
 }
 
 @function to-minmax($values...) { // refactor
-  @if len($values) == 1 {
+  @if length($values) == 1 {
     $value: nth($values, 1);
 
     @if type-of($value) != 'list' {
@@ -598,7 +598,7 @@
 
     }
 
-    $cols: len($kaka);
+    $cols: length($kaka);
     @each $viewport, $t, $count in $kaka {
       $min-vw: $i + 1; // refactor
       @if ($min-vw > $cols) {
@@ -753,7 +753,7 @@
 // }
 
 
-@function calc-grid-col-by-len($cols, $items-in-row, $decrement: 1) {
+@function calc-grid-col-by-length($cols, $items-in-row, $decrement: 1) {
   $col: math.div($cols, $items-in-row);
 
   @if $cols <= 1 {
@@ -761,7 +761,7 @@
   }
 
   @if is-float($col) {
-    @return calc-grid-col-by-len($cols, $items-in-row - $decrement);
+    @return calc-grid-col-by-length($cols, $items-in-row - $decrement);
   } @else {
     @return $col;
   }
@@ -770,7 +770,7 @@
 @function to-template($grid-cols, $cols, $transformed-min-max-pairs, $mode) {
   $template: null;
 
-  @if len($transformed-min-max-pairs) > 1 {
+  @if length($transformed-min-max-pairs) > 1 {
     $minmaxes: [];
 
     @each $pair in $transformed-min-max-pairs {
@@ -814,7 +814,7 @@
 
 
 
-@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: 12) {
+@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: null) {
 
   // добавить min-viewport
   // может и max-viewport
@@ -822,11 +822,20 @@
 
   // на минимумах фиксить скролл
 
+  // для gap добавить min-max для calc-responsive()
+
   $calculated: [];  // Переделать в мапу
+
+  $min: 'auto';
+  $max: null;
+
   $min-max-pairs: [];
   $transformed-min-max-pairs: [];
+
   $is-one-pair: true;
+
   $items-in-row: $cols; // temp ?
+
   $container: del-unit(get-var(container));
   $padding: 15 * 2;
   $scroll: 17.5;
@@ -838,10 +847,20 @@
   $template: null;
   $average-min: null;
 
+  @if $decreaser {
+    $decrement: 2;
+
+    @if $decreaser == 'odd' {
+      $treshold: 3;
+    }
+  }
+
+
   @if is-num($values) {
 
     @if not has-unit($values) {
       $cols: $values;
+      $min-max-pairs: append($min-max-pairs, ($min, $max));
 
     } @else {
       //@error '';
@@ -862,132 +881,93 @@
 
     @each $list in $values {
 
-      @if len($list) > 1 {
-        $min-max-pairs: append($min-max-pairs, (nth($list, 1), nth($list, 2)));
+      @if length($list) > 1 {
+        $min: nth($list, 1);
+        $max: nth($list, 2);
 
       } @else {
-        $min-max-pairs: append($min-max-pairs, ('auto', nth($list, 1)));
+        $min: 'auto';
+        $max: nth($list, 1);
       }
+
+      $min-max-pairs: append($min-max-pairs, ($min, $max));
     }
 
   } @else {
     //@error '';
   }
 
-  $is-one-pair: len($min-max-pairs) == 1;
+  $is-one-pair: length($min-max-pairs) == 1;
 
-  @if $decreaser {
-    $decrement: 2;
-
-    @if $decreaser == 'odd' {
-      $treshold: 3;
-    }
+  @if $is-one-pair {
+    $min: nth(nth($min-max-pairs, 1), 1);
+    $max: nth(nth($min-max-pairs, 1), 2);
   }
 
   @if is-null($mode) {
-    @if $is-one-pair {
-      $max: soft-nth(nth($min-max-pairs, 1), 2);
-
-      @if $max and not has-unit($max) {
-        $mode: 'percent';
-      }
-
-    } @else {
+    @if $is-one-pair and $max and not has-unit($max) or not $is-one-pair {
       $mode: 'percent';
     }
   }
 
+  @if is-null($cols) and $is-one-pair and $max and has-unit($max, 'px') {
+      $digit-max: del-unit($max);
+      $cols: 0;
 
-
-  @if is-null($cols) and $is-one-pair { // refactor condition
-
-    @if has-unit($max, 'px') {
-      $max: nth(nth($min-max-pairs, 1), 2);
-      $max: del-unit($max);
-
-      @while (($max + $gap) * ($cols + 1)) - $gap < $container { // refactor // or <= // похожее
+      @while (($digit-max + $gap) * ($cols + 1)) - $gap < $container {
         $cols: $cols + 1;
       }
+  }
 
-    } @else { // refactor condition
-      $cols: 12;
-    }
-
-  } @else { // refactor condition
+  @if is-null($cols) {
     $cols: 12;
   }
 
-  @if $is-one-pair {
-    $max: nth(nth($min-max-pairs, 1), 2);
+  @if $is-one-pair and $max and not has-unit($max) {
+    $items-in-row: math.div($cols, $max);
 
-    @if $max and not has-unit($max) {
+  } @else if $is-one-pair {
+    $items-in-row: $cols;
 
-
-      $items-in-row: math.div($cols, $max);
-
-    // } @else {
-    //   $items-in-row: $cols;
-    // }
-    }
+  } @else {
+    $items-in-row: length($min-max-pairs);
   }
 
-
-
-  $grid-col: calc-grid-col-by-len($cols, $items-in-row, $decrement);
   $gaps-sum: $gap * ($items-in-row - 1);
-
+  $grid-col: calc-grid-col-by-length($cols, $items-in-row, $decrement);
 
   @each $pair in $min-max-pairs {
     $min: nth($pair, 1);
     $max: nth($pair, 2);
 
-    @if is-null($max) { // temp and refactor or remove
+    @if is-null($max) or $mode == 'span' { // temp and refactor or remove
       $max: 1fr;
-    }
 
-    @if not has-unit($max) {
+    } @else if not has-unit($max) {
+
       @if $mode == 'percent' {
         //$max: calc((100% - to-number($gaps-sum, 'px')) / $items-in-row); // calc((100% - to-number($gaps-sum, 'px')) / $cols / max);
-        $filled-cols: math.div($cols, $max);
+        $parts-total: math.div($cols, $max);
         //$items-width: 100% - to-number($gaps-sum, 'px');
-        $max: calc((100% - to-number($gaps-sum, 'px')) / $filled-cols); // calc((100% - to-number($gaps-sum, 'px')) / $cols / max);
-
-      } @else if $mode == 'span' {
-        $max: 1fr;
+        //$max: calc((100% - to-number($gaps-sum, 'px')) / $items-in-row);
+        $max: calc((100% - to-number($gaps-sum, 'px')) / $parts-total); // calc((100% - to-number($gaps-sum, 'px')) / $cols / max);
 
       } @else if $mode == 'px' { // допилить
-        $width-items-sum: $container - $gaps-sum;
-        $col: math.div($width-items-sum, $cols);
+        $available-width: $container - $gaps-sum;
+        $col: math.div($available-width, $cols);
         $max: $col * $max;
         $max: to-number($max, 'px');
         //$max: calc-responsive(180px, $max, 840px);
       }
     }
 
-
-
-
-
-    $transformed-min-max-pairs: append($transformed-min-max-pairs, [$min, $max]);
+    $transformed-min-max-pairs: append($transformed-min-max-pairs, ($min, $max));
   }
 
 
-
-  // @if $is-one-pair {
-  //   $min: nth(nth($min-max-pairs, 1), 1);
-  //   $max: nth(nth($min-max-pairs, 1), 2);
-  //
-  //   @if is-null($max) {
-  //     $max: 1fr;
-  //   }
-  //
-  //   $transformed-min-max-pairs: append($transformed-min-max-pairs, [$min, 1fr]);
-  // }
-
-
-  $temp-i: 1;
-
-  @each $pair in $transformed-min-max-pairs { // добавить функцию добавления индекса
+  //@for $i from 1 to length($transformed-min-max-pairs) {
+  @each $pair, $i in add-indexes($transformed-min-max-pairs) {
+    $pair: nth($transformed-min-max-pairs, $i);
     $min: nth($pair, 1);
     $max: nth($pair, 2);
 
@@ -1005,34 +985,26 @@
         $min: del-unit($max) * $k;
 
       } @else {
-        $width-items-sum: $container - $gaps-sum;
-        $width-item: null; //refactor
+        $available-width: $container - $gaps-sum;
+        $part-per-px: null;
 
-        // $source-max: nth(nth($min-max-pairs, $temp-i), 2);
-        // $filled-cols: math.div($cols, $source-max);
-        // $width-item: math.div($width-items-sum, $filled-cols);
-
-        @if $mode { // temp
-          $source-max: nth(nth($min-max-pairs, $temp-i), 2);
-          $filled-cols: math.div($cols, $source-max);
-          $width-item: math.div($width-items-sum, $filled-cols);
+        @if $mode {
+          $part: nth(nth($min-max-pairs, $i), 2);
+          $parts-total: math.div($cols, $part);
+          $part-per-px: math.div($available-width, $parts-total);
 
         } @else {
-          $width-item: math.div($width-items-sum, $items-in-row);
+          $part-per-px: math.div($available-width, $items-in-row);
         }
 
-        $min: $width-item * $k;
+        $min: $part-per-px * $k;
       }
 
       $min: to-number($min, 'px');
     }
 
-    $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, $temp-i, [$min, $max]);
-
-    $temp-i: $temp-i + 1;
+    $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, $i, ($min, $max));
   }
-
-
 
   $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode); // Добавить репит для повторяющихся шаблонов
   $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
@@ -1050,7 +1022,7 @@
       $mins: append($mins, $min);
     }
 
-    $average-min: math.div(sum($mins), len($mins));
+    $average-min: math.div(sum($mins), length($mins));
   }
 
   @if $decreaser == 'even' {
@@ -1067,11 +1039,12 @@
   }
 
 
+
   @if $is-one-pair { // temp
 
-    @while $items-in-row >= $treshold { // refactor
+    @while $items-in-row >= $treshold {
       $gaps-sum: $gap * ($items-in-row - 1);
-      $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding; // refactor test without padding
+      $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding;
       $items-in-row: $items-in-row - $decrement;
 
       @if $items-in-row >= $treshold { // refactor
@@ -1085,21 +1058,20 @@
           $max: calc((100% - $gaps-sum) / $items-in-row); // ($col / $max) instead of $items-in-row
 
         } @else if $mode == 'px' { // to-template можно minmax() без минимума
-
-
           //$max: calc-responsive($min, $max, $viewport);
         }
 
-        $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, [$min, $max]);
-
-        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode); // возможно всю логику выше перенести в to-template()
+        $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, ($min, $max));
+        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode);
 
       } @else {
-        $template: 1fr;
+        //$items-in-row: 1;
+        $template: 1fr; // important
+        
       }
 
       @if $mode == 'span' { // на последнем viewport 1fr возможно все
-        $grid-col: calc-grid-col-by-len($cols, $items-in-row, $decrement);
+        $grid-col: calc-grid-col-by-length($cols, $items-in-row, $decrement);
         $items-in-row: math.div($cols, $grid-col);
       }
 
@@ -1115,7 +1087,7 @@
   }
 
   @if $mode == 'px' and $is-one-pair { // refactor // template already present
-    $temp-i: 1;
+
 
     $first-val: nth($calculated, 1);
 
@@ -1129,41 +1101,35 @@
 
     $calculated: insert-nth($calculated, 2, ($viewport, $template, $items-in-row, $grid-col));
 
-
-    @while $temp-i < len($calculated) {
-
-      @if $temp-i > 1 {
-        $pair: nth($transformed-min-max-pairs, 1);
-        $min: nth($pair, 1);
-        $max: nth($pair, 2);
+    @for $i from 2 to length($calculated) {
+      $pair: nth($transformed-min-max-pairs, 1);
+      $min: nth($pair, 1);
+      $max: nth($pair, 2);
 
 
 
 
-        $temp: nth($calculated, $temp-i);
-        $viewport: nth($temp, 1);
-        $items-in-row: nth($temp, 3);
+      $temp: nth($calculated, $temp-i);
+      $viewport: nth($temp, 1);
+      $items-in-row: nth($temp, 3);
 
-        $prev-items-in-row: nth(nth($calculated, $temp-i - 1), 3);
-
-
-        $gaps-sum: $gap * ($items-in-row - 1);
-        $gaps-sum: to-number($gaps-sum, 'px');
-
-        $max: ($viewport - $gaps-sum - $padding) / $items-in-row;
+      $prev-items-in-row: nth(nth($calculated, $temp-i - 1), 3);
 
 
-        $min: $min - (17.5 / $items-in-row);
-        $max: $max - (17.5 / $items-in-row);
+      $gaps-sum: $gap * ($items-in-row - 1);
+      $gaps-sum: to-number($gaps-sum, 'px');
 
-        $grid-col: nth($temp, 4);
-        $next-viewport: nth(nth($calculated, $temp-i + 1), 1);
-        $template: calc-responsive($min, $max, to-number($next-viewport, 'px'), to-number($viewport, 'px'));
-        $template: repeat(auto-fit, minmax($min, $template));
-        $calculated: replace-nth($calculated, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
-      }
+      $max: ($viewport - $gaps-sum - $padding) / $items-in-row;
 
-      $temp-i: $temp-i + 1;
+
+      $min: $min - (17.5 / $items-in-row);
+      $max: $max - (17.5 / $items-in-row);
+
+      $grid-col: nth($temp, 4);
+      $next-viewport: nth(nth($calculated, $temp-i + 1), 1);
+      $template: calc-responsive($min, $max, to-number($next-viewport, 'px'), to-number($viewport, 'px'));
+      $template: repeat(auto-fit, minmax($min, $template));
+      $calculated: replace-nth($calculated, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
     }
   }
 
@@ -1175,7 +1141,7 @@
 
 
 
-@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false, $cols: 12) {
+@mixin smart-grid($value, $mode: null, $decreaser: null, $stretch: false, $cols: null) {
 
   //$scroll: '(100vw - 100%)';
   //--d: #{$scroll} / #{$cols};
@@ -1214,7 +1180,7 @@
         }
       }
 
-    } @else if $i != len($calculated) {
+    } @else if $i != length($calculated) {
       $viewport-min: nth(nth($calculated, $i + 1), 1);
       $viewport-max: $viewport;
 
@@ -1258,7 +1224,7 @@
 
 
 // @mixin smart-grid($list) { // replace on func
-//   $cols: len($list);
+//   $cols: length($list);
 //   $scroll: '(100vw - 100%)';
 //   --d: #{$scroll} / #{$cols};
 //
@@ -1345,7 +1311,7 @@
 //   $max-width: del-unit(get-var(container));
 //   $col: math.div($max-width, 12);
 //   $gap: 30;
-//   $cols: len($list);
+//   $cols: length($list);
 //
 //   $templates: ();
 //   $templates-scroll-fix: ();
