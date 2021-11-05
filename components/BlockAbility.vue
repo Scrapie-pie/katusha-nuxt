@@ -55,13 +55,13 @@ export default {
   }
 
   &__container {
-    display: grid;
-    grid-template-columns: minmax(300px, auto) minmax(300px, 910px);
-    justify-content: space-between;
-    gap: 30px;
+    // display: grid;
+    // grid-template-columns: minmax(300px, auto) minmax(300px, 910px);
+    // justify-content: space-between;
+    // gap: 30px;
 
 
-    //@include smart-grid([(300px, 4), (300px, 7)], $multi: true);
+    @include smart-grid([('auto', 4), ('auto', 6)]);
 
     // 490 910
   }
@@ -112,7 +112,7 @@ export default {
 
   @media (max-width: 1024px) { // Переход
     &__container {
-      grid-template-columns: 1fr;
+      //grid-template-columns: 1fr;
     }
     &__side {
       margin: 0 auto;

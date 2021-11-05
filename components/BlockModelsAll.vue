@@ -95,7 +95,7 @@ export default {
       gap: 30px 35px;
       background-color: yellow;
 
-      //@include smart-grid((100px, 100px) (200px, 3) (200px, 6), $mode: 'percent'); // work
+      @include smart-grid(('auto', 300px) ('auto', 3) ('auto', 6), $mode: 'percent'); // work
 
       //@include smart-grid([(100px, 200px), (300px, 3), (300px, 6)], $mode: 'span'); // does not work
     }

@@ -753,21 +753,21 @@
 // }
 
 
-@function calc-grid-col-by-length($cols, $items-in-row, $decrement: 1) {
-  $col: math.div($cols, $items-in-row);
+@function calc-available-span($cols, $items-in-row, $decrement: 1) {
+  $span: math.div($cols, $items-in-row);
 
   @if $cols <= 1 {
     @return $cols;
   }
 
-  @if is-float($col) {
-    @return calc-grid-col-by-length($cols, $items-in-row - $decrement);
+  @if is-float($span) {
+    @return calc-available-span($cols, $items-in-row - $decrement);
   } @else {
-    @return $col;
+    @return $span;
   }
 }
 
-@function to-template($grid-cols, $cols, $transformed-min-max-pairs, $mode) {
+@function to-template($spans, $cols, $transformed-min-max-pairs, $mode) {
   $template: null;
 
   @if length($transformed-min-max-pairs) > 1 {
@@ -791,7 +791,7 @@
       $template: repeat(auto-fit, $max);
 
     } @else if $mode == 'span' {
-      $template: repeat($grid-cols, $max);
+      $template: repeat($spans, $max);
 
     } @else if $mode == 'px' {
       $template: repeat(auto-fit, minmax($min, $max));
@@ -814,7 +814,7 @@
 
 
 
-@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: null) {
+@function calc-viewport-templates($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: null, $width: get-var(container), $padding: get-var(edge-padding)) {
 
   // добавить min-viewport
   // может и max-viewport
@@ -841,9 +841,9 @@
   $scroll: 17.5;
   $gaps-sum: null;
   $viewport: null;
-  $grid-col: null;
+  $span: null;
   $decrement: 1;
-  $treshold: 2;
+  $treshold: 2; // $items-in-row threshold before min-viewport
   $template: null;
   $average-min: null;
 
@@ -934,7 +934,7 @@
   }
 
   $gaps-sum: $gap * ($items-in-row - 1);
-  $grid-col: calc-grid-col-by-length($cols, $items-in-row, $decrement);
+  $span: calc-available-span($cols, $items-in-row, $decrement);
 
   @each $pair in $min-max-pairs {
     $min: nth($pair, 1);
@@ -974,8 +974,23 @@
     @if is-null($min) {
       $min: 1;
 
-    } @else if $min == 'auto' {
-      $min: 0.5; // temp
+    } @else if $min == 'auto' { // должна ли логика быть другой, при разном числе колонок? (формула)
+      //$min: 0.75; // temp
+
+      @if is-num($max) and has-unit($max, 'px') {
+        $min: 1 - math.div(del-unit($max), $container);
+
+      } @else {
+        $source-max: nth(nth($min-max-pairs, $i), 2);
+
+        @if not has-unit($source-max) {
+          $min: 1 - math.div($source-max, $cols);
+        }
+      }
+
+      @if $min < 0.4 { //temp
+        $min: 0.4;
+      }
     }
 
     @if not has-unit($min) {
@@ -1007,7 +1022,7 @@
   }
 
   $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode); // Добавить репит для повторяющихся шаблонов
-  $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
+  $calculated: append($calculated, ($viewport, $template, $items-in-row, $span));
 
 
   @if $is-one-pair {
@@ -1038,98 +1053,77 @@
     }
   }
 
-
-
-  @if $is-one-pair { // temp
-
-    @while $items-in-row >= $treshold {
-      $gaps-sum: $gap * ($items-in-row - 1);
-      $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding;
-      $items-in-row: $items-in-row - $decrement;
-
-      @if $items-in-row >= $treshold { // refactor
-        $pair: nth($transformed-min-max-pairs, 1);
-        $min: nth($pair, 1);
-        $max: nth($pair, 2);
-
-        @if $mode == 'percent' { // refactor // transform $transformed-min-max-pairs // MOVE TO to-template()
-          $gaps-sum: $gap * ($items-in-row - 1);
-          $gaps-sum: to-number($gaps-sum, 'px');
-          $max: calc((100% - $gaps-sum) / $items-in-row); // ($col / $max) instead of $items-in-row
-
-        } @else if $mode == 'px' { // to-template можно minmax() без минимума
-          //$max: calc-responsive($min, $max, $viewport);
-        }
-
-        $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, ($min, $max));
-        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode);
-
-      } @else {
-        //$items-in-row: 1;
-        $template: 1fr; // important
-        
-      }
-
-      @if $mode == 'span' { // на последнем viewport 1fr возможно все
-        $grid-col: calc-grid-col-by-length($cols, $items-in-row, $decrement);
-        $items-in-row: math.div($cols, $grid-col);
-      }
-
-      $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
-    }
-
-  } @else { // temp
-    $gaps-sum: $gap * ($items-in-row - 1);
-    $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding; // refactor test without padding
-    $items-in-row: 1;
-    $template: 1fr;
-    $calculated: append($calculated, ($viewport, $template, $items-in-row, $grid-col));
+  @if not $is-one-pair { // temp
+    $treshold: $items-in-row;
   }
 
-  @if $mode == 'px' and $is-one-pair { // refactor // template already present
+  @while $items-in-row >= $treshold {
+    // refactor conditions below
 
+    $gaps-sum: $gap * ($items-in-row - 1);
+    $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding;
+    $items-in-row: $items-in-row - $decrement;
 
-    $first-val: nth($calculated, 1);
-
-    $pair: nth($transformed-min-max-pairs, 1);
-    $min: nth($pair, 1);
-    $max: nth($pair, 2);
-    $viewport: $container + $padding;
-    $template: nth($first-val, 2);
-    $items-in-row: nth($first-val, 3);
-    $grid-col: nth($first-val, 4);
-
-    $calculated: insert-nth($calculated, 2, ($viewport, $template, $items-in-row, $grid-col));
-
-    @for $i from 2 to length($calculated) {
+    @if $items-in-row >= $treshold { // refactor
       $pair: nth($transformed-min-max-pairs, 1);
       $min: nth($pair, 1);
       $max: nth($pair, 2);
 
+      @if $mode == 'percent' { // refactor // transform $transformed-min-max-pairs // MOVE TO to-template()
+        $gaps-sum: $gap * ($items-in-row - 1);
+        $gaps-sum: to-number($gaps-sum, 'px');
+        $max: calc((100% - $gaps-sum) / $items-in-row); // ($col / $max) instead of $items-in-row
+        $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, ($min, $max));
+      }
 
+      @if $mode == 'px' {
+        $template: null;
 
+      } @else {
+        $template: to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode);
+      }
 
-      $temp: nth($calculated, $temp-i);
-      $viewport: nth($temp, 1);
-      $items-in-row: nth($temp, 3);
+    } @else {
+      $items-in-row: 1;
+      $template: 1fr; // important
+    }
 
-      $prev-items-in-row: nth(nth($calculated, $temp-i - 1), 3);
+    @if $mode == 'span' { // на последнем viewport 1fr возможно все
+      $span: calc-available-span($cols, $items-in-row, $decrement);
+      $items-in-row: math.div($cols, $span);
+    }
 
+    $calculated: append($calculated, ($viewport, $template, $items-in-row, $span));
+  }
 
+  @if $mode == 'px' and $is-one-pair {
+    $viewport: $container + $padding;
+
+    $first: nth($calculated, 1);
+    $second: [$viewport, null, nth($first, 3), nth($first, 4)];
+
+    $calculated: insert-nth($calculated, 2, $second);
+
+    $pair: nth($transformed-min-max-pairs, 1);
+    $min: nth($pair, 1);
+    $max: nth($pair, 2);
+
+    @for $i from 2 to length($calculated) {
+      $current: nth($calculated, $i);
+      $items-in-row: nth($current, 3);
       $gaps-sum: $gap * ($items-in-row - 1);
       $gaps-sum: to-number($gaps-sum, 'px');
-
-      $max: ($viewport - $gaps-sum - $padding) / $items-in-row;
-
+      $viewport: nth($current, 1);
+      $next-viewport: nth(nth($calculated, $i + 1), 1);
 
       $min: $min - (17.5 / $items-in-row);
+      $max: math.div(($viewport - $gaps-sum - $padding), $items-in-row);
       $max: $max - (17.5 / $items-in-row);
 
-      $grid-col: nth($temp, 4);
-      $next-viewport: nth(nth($calculated, $temp-i + 1), 1);
       $template: calc-responsive($min, $max, to-number($next-viewport, 'px'), to-number($viewport, 'px'));
       $template: repeat(auto-fit, minmax($min, $template));
-      $calculated: replace-nth($calculated, $temp-i, ($viewport, $template, $items-in-row, $grid-col));
+
+      $calculated: replace-nth($calculated, $i, ($viewport, $template, $items-in-row, nth($current, 4)));
     }
   }
 
@@ -1149,23 +1143,23 @@
   $gap: 30;
   $padding: 15;
 
+  //@include container; // or @extend container and set container as class
+
 
   display: grid;
   grid-column-gap: #{$gap}px;
   justify-content: space-between;
   margin: 0 auto;
 
-  @if $padding { // refactor // Можно ли вычислять без паддинга?
+  @if $padding {
     padding-left: #{$padding}px;
     padding-right: #{$padding}px;
-  } @else {
-    $padding: 0;
   }
 
   $calculated: calc-viewport-templates($value, $mode: $mode, $decreaser: $decreaser, $cols: $cols);
   $i: 1;
 
-  @each $viewport, $template, $cols, $grid-col, $max in $calculated { // refactor
+  @each $viewport, $template, $cols, $span in $calculated { // refactor // cols не нужен
 
     @if $i == 1 {
       $viewport-min: nth(nth($calculated, 2), 1);
@@ -1175,7 +1169,7 @@
 
         @if $mode == 'span' {
           & > * {
-            grid-column: span $grid-col;
+            grid-column: span $span;
           }
         }
       }
@@ -1189,7 +1183,7 @@
 
         @if $mode == 'span' {
           & > * {
-            grid-column: span $grid-col;
+            grid-column: span $span;
           }
         }
       }
@@ -1202,7 +1196,7 @@
 
           @if $mode == 'span' {
             & > * {
-              grid-column: span $grid-col;
+              grid-column: span $span;
             }
           }
         }
@@ -1212,7 +1206,7 @@
   }
 
   & > * {
-    background-color: #6ba9fb;
+    //background-color: #6ba9fb;
   }
 }
 
