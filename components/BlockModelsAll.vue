@@ -50,9 +50,9 @@ export default {
   &__container {
     display: grid;
     gap: 30px 35px;
-    background-color: blue;
+    //background-color: blue;
 
-    //@include smart-grid(8); //work
+    @include smart-grid(6); //work
     //@include smart-grid((100px, null), $cols: 8); // work
 
     //@include smart-grid((100px, 150px), $cols: 8); // work
@@ -74,7 +74,7 @@ export default {
 
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
-    @include smart-grid((0.5, 3), $mode: 'span'); // work
+    //@include smart-grid((0.5, 3), $mode: 'span'); // work
     //@include smart-grid((0.5, 3), $mode: 'percent'); // work
     //@include smart-grid((0.5, 3), $mode: 'px'); // work
 
@@ -85,6 +85,11 @@ export default {
 
     //@include smart-grid((0.75, 3));
     //@include smart-grid((3) (3));
+
+    //@include smart-grid([[400px], [400px], [400px]]); // not one-pair // mb refactor
+    //@include smart-grid([[400px], [400px], [400px]]);
+
+
   }
 
   .test-grid {
@@ -95,7 +100,7 @@ export default {
       gap: 30px 35px;
       background-color: yellow;
 
-      @include smart-grid(('auto', 300px) ('auto', 3) ('auto', 6), $mode: 'percent'); // work
+      //@include smart-grid(('auto', 300px) ('auto', 3) ('auto', 6), $mode: 'percent'); // work
 
       //@include smart-grid([(100px, 200px), (300px, 3), (300px, 6)], $mode: 'span'); // does not work
     }

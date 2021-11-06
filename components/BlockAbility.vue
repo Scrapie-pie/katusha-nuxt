@@ -61,7 +61,7 @@ export default {
     // gap: 30px;
 
 
-    @include smart-grid([('auto', 4), ('auto', 6)]);
+    //@include smart-grid([('auto', 4), ('auto', 7)]);
 
     // 490 910
   }
