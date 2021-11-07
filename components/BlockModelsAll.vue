@@ -11,7 +11,7 @@
        :caption="model.labels.print.value"
        :image="model.image"
        />
-       <!-- <ElementModel
+       <ElementModel
          v-for="(model, i) of models"
         :key="i"
         :name="model.name"
@@ -19,7 +19,7 @@
         :format="model.labels.format.value"
         :caption="model.labels.print.value"
         :image="model.image"
-        /> -->
+        />
     </div>
 
     <div class="test-grid">

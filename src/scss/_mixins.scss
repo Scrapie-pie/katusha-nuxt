@@ -887,6 +887,50 @@
 
 
 
+// @mixin stretch-recurse($items-in-row, $stretch-items-count: 1, $items-available: 1) {
+//   $available-parts: $items-in-row / 2;
+//
+//
+//
+//   @if $items-in-row % $stretch-items-count == 0 {
+//     $span: $items-in-row / $stretch-items-count;
+//
+//     & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$stretch-items-count + 1}) ~ *:nth-last-child(-n + #{$stretch-items-count}) {
+//       grid-column: span #{$span};
+//     }
+//
+//   } @else { // 8 % 3 == 2 ; 8 % 5 == 3;
+//     $remainder: $items-in-row % $stretch-items-count;
+//
+//     @if $items-in-row % $remainder == 0 {
+//       $span: $items-in-row / $remainder;
+//
+//       & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$stretch-items-count + 1}) ~ * {
+//         grid-column: span #{$span};
+//       }
+//
+//       *:nth-last-child(-n + 2)
+//
+//     }
+//
+//
+//     $available-stretch: $items-in-row - $remainder;
+//
+//
+//
+//     & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$stretch-items-count + 1}) ~ * {
+//       grid-column: span #{$span};
+//     }
+//
+//     & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) {
+//
+//     }
+//
+//   }
+//
+//
+// }
+
 @mixin smart-grid($values, $gap: 30, $mode: null, $decreaser: null, $stretch: false, $cols: null, $width: get-var(container), $edge-padding: get-var(edge-padding)) {
 
   //$scroll: '(100vw - 100%)';
@@ -939,29 +983,359 @@
 
       @if $stretch {
 
+
+
         @if $items-in-row % 2 == 0 {//temp
 
 
 
           $all-colonok-tianetsia: $items-in-row / 2; // 4
-
-
-          $te: $all-colonok-tianetsia + 1;
-          & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$te}) ~ * { // $all-colonok-tianetsia instead of *
+          $nth-end: $all-colonok-tianetsia;
+          //$nth-end: $all-colonok-tianetsia - 2;
+          //
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:last-child { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row};
+          // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+          //
+          $nth-end: $nth-end + 1;
+          //
+          //
+          & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 3) { // $all-colonok-tianetsia instead of *
             //grid-column: span 2;
             $po-colonke: $items-in-row / ($items-in-row / 2);
             // count / 2 = 4 колонки
             // count / 4 = спан
             grid-column: span #{$po-colonke};
           }
-
-          // & > *:nth-child(#{$items-in-row}n) + *:last-child { // $all-colonok-tianetsia instead of *
+          //
+          //
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
           //   //grid-column: span 2;
-          //   //$po-colonke: $items-in-row / ($items-in-row / 2);
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$po-colonke};
+          // }
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 1) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
           //   // count / 2 = 4 колонки
           //   // count / 4 = спан
           //   grid-column: span #{$items-in-row};
           // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$po-colonke};
+          // }
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+
+
+          // $all-colonok-tianetsia: $items-in-row / 2; // 4
+          // //$nth-end: $all-colonok-tianetsia - 1;
+          // $nth-end: $all-colonok-tianetsia - 2;
+          //
+          //
+          //
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:last-child { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row};
+          // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // @if $items-in-row % $nth-end + 1 == 0 {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$po-colonke};
+          //   }
+          //
+          // } @else {
+          //   //$nth-end: $nth-end + 1;
+          //
+          //
+          //
+          //
+          //
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 3) { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row / 2};
+          //   }
+          //
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:last-child { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row};
+          //   }
+          // }
+          //
+          //
+          //
+          //
+          //
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // @if $items-in-row % $nth-end + 1 == 0 {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$po-colonke};
+          //   }
+          //
+          // } @else {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row / 2};
+          //   }
+          // }
+          //
+          //
+          //
+          //
+          // // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          // //   //grid-column: span 2;
+          // //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          // //   // count / 2 = 4 колонки
+          // //   // count / 4 = спан
+          // //   grid-column: span #{$po-colonke};
+          // // }
+          // //
+          // // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 1) { // $all-colonok-tianetsia instead of *
+          // //   //grid-column: span 2;
+          // //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          // //   // count / 2 = 4 колонки
+          // //   // count / 4 = спан
+          // //   grid-column: span #{$items-in-row};
+          // // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$po-colonke};
+          // }
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+
+          // $available-parts: $items-in-row / 2;
+          // $stretch-items-count: 1;
+          // $nth-from-start: $items-in-row;
+          // //$nth-from-end: $stretch-items-count + 1;
+          //
+          // $is-calculated: false;
+          //
+          // @while not $is-calculated {
+          //   & > *:nth-child(#{$nth-from-start}n):nth-last-child(#{$stretch-items-count + 1}) {
+          //     $cols-stretch: null;
+          //     $items-stretch: null;
+          //
+          //     //@if $stretch-items-count
+          //
+          //     // Если итем 1 то тянем на всю
+          //     // если больше то
+          //     @if $items-in-row % $stretch-items-count == 0 {
+          //       $span: $items-in-row / $stretch-items-count;
+          //       grid-column: span #{$span};
+          //
+          //
+          //
+          //     } @else {
+          //
+          //     }
+          //   }
+          //
+          //   $stretch-items-count: $stretch-items-count + 1;
+          // }
+          //
+          //
+          //
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:last-child { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row};
+          // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // @if $items-in-row % $nth-end + 1 == 0 {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$po-colonke};
+          //   }
+          //
+          // } @else {
+          //   //$nth-end: $nth-end + 1;
+          //
+          //
+          //
+          //
+          //
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 3) { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row / 2};
+          //   }
+          //
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:last-child { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row};
+          //   }
+          // }
+          //
+          //
+          //
+          //
+          //
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // @if $items-in-row % $nth-end + 1 == 0 {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$po-colonke};
+          //   }
+          //
+          // } @else {
+          //   & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //     //grid-column: span 2;
+          //     $po-colonke: $items-in-row / ($items-in-row / 2);
+          //     // count / 2 = 4 колонки
+          //     // count / 4 = спан
+          //     grid-column: span #{$items-in-row / 2};
+          //   }
+          // }
+          //
+          //
+          //
+          //
+          // // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          // //   //grid-column: span 2;
+          // //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          // //   // count / 2 = 4 колонки
+          // //   // count / 4 = спан
+          // //   grid-column: span #{$po-colonke};
+          // // }
+          // //
+          // // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 1) { // $all-colonok-tianetsia instead of *
+          // //   //grid-column: span 2;
+          // //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          // //   // count / 2 = 4 колонки
+          // //   // count / 4 = спан
+          // //   grid-column: span #{$items-in-row};
+          // // }
+          //
+          // $nth-end: $nth-end + 1;
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ * { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$po-colonke};
+          // }
+          //
+          // & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$nth-end}) ~ *:nth-last-child(-n + 2) { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   $po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row / 2};
+          // }
+
+
+
 
         }
 
