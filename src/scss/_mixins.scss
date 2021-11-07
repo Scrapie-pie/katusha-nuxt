@@ -909,7 +909,7 @@
   $calculated: calc-viewport-templates($values, $mode: $mode, $decreaser: $decreaser, $cols: $cols);
   $i: 1;
 
-  @each $viewport, $template, $cols, $span in $calculated { // refactor // cols не нужен // $viewport-min, $viewport-max refactor
+  @each $viewport, $template, $items-in-row, $span in $calculated { // refactor // cols не нужен // $viewport-min, $viewport-max refactor
 
     $media: null;
     //$query: null;
@@ -936,6 +936,41 @@
           grid-column: span $span;
         }
       }
+
+      @if $stretch {
+
+        @if $items-in-row % 2 == 0 {//temp
+
+
+
+          $all-colonok-tianetsia: $items-in-row / 2; // 4
+
+
+          $te: $all-colonok-tianetsia + 1;
+          & > *:nth-child(#{$items-in-row}n):nth-last-child(#{$te}) ~ * { // $all-colonok-tianetsia instead of *
+            //grid-column: span 2;
+            $po-colonke: $items-in-row / ($items-in-row / 2);
+            // count / 2 = 4 колонки
+            // count / 4 = спан
+            grid-column: span #{$po-colonke};
+          }
+
+          // & > *:nth-child(#{$items-in-row}n) + *:last-child { // $all-colonok-tianetsia instead of *
+          //   //grid-column: span 2;
+          //   //$po-colonke: $items-in-row / ($items-in-row / 2);
+          //   // count / 2 = 4 колонки
+          //   // count / 4 = спан
+          //   grid-column: span #{$items-in-row};
+          // }
+
+        }
+
+
+      }
+
+
+
+
     }
 
 

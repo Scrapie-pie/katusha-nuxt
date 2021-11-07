@@ -52,7 +52,9 @@ export default {
     gap: 30px 35px;
     //background-color: blue;
 
-    @include smart-grid(6); //work
+    //@include smart-grid(8); //work
+    @include smart-grid(8, $stretch: true); //work
+
     //@include smart-grid((100px, null), $cols: 8); // work
 
     //@include smart-grid((100px, 150px), $cols: 8); // work
