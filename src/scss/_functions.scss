@@ -502,3 +502,55 @@
 
   @return $wrapper;
 }
+
+
+@function sequence($from: 1, $to: 1) {
+  $sequence: [];
+
+  @for $n from $from to $to + 1 {
+    $sequence: append($sequence, $n);
+    $n: $n + 1;
+  }
+
+  @return $sequence;
+}
+
+
+@function _gcd($first, $second) { // combine with gcd()
+  $first: math.abs($first);
+  $second: math.abs($second);
+
+  @if is-null($second) or $second == 0 {
+    @return $first;
+
+  } @else {
+    @return _gcd($second, $first % $second);
+  }
+}
+
+@function gcd($numbers...) {
+  $result: 0;
+
+  @each $number in $numbers {
+    $result: _gcd($result, $number);
+  }
+
+  @return $result;
+}
+
+@function _lcm($first, $second) { // combine with lcm()
+  $first: math.abs($first);
+  $second: math.abs($second);
+
+  @return math.div($first * $second, gcd($first, $second));
+}
+
+@function lcm($numbers...) {
+  $result: 1;
+
+  @each $number in $numbers {
+    $result: _lcm($result, $number)
+  }
+
+	@return $result
+}
