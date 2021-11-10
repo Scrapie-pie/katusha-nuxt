@@ -513,6 +513,41 @@
   }
 }
 
+@function calc-repetitive-sequence($list, $i: 1, $count: 1) { // use into func above
+  $current: nth($list, $i);
+  $next: soft-nth($list, $i + 1);
+
+  @if is-null($next) or $current != $next {
+    $new-value: [$current, $count];
+    $i: $i - $count + 1;
+
+    @for $n from 0 to $count {
+      $list: remove-nth($list, $i);
+    }
+
+    @if $i > length($list) {
+      $list: append($list, $new-value);
+
+    } @else {
+      $list: insert-nth($list, $i, $new-value);
+    }
+  }
+
+  @if $current == $next {
+    $count: $count + 1;
+
+  } @else {
+    $count: 1;
+  }
+
+  @if is-null($next) {
+    @return $list;
+
+  } @else {
+    @return calc-repetitive-sequence($list, $i + 1, $count);
+  }
+}
+
 @function to-template($cols, $items-in-row, $transformed-min-max-pairs, $mode) {
   $template: null;
 
@@ -915,64 +950,103 @@
       $template: 1fr; // important
     }
 
-    @if $mode == 'span' and $stretch { // на последнем viewport 1fr возможно все
-      $len: length($min-max-pairs);
+    // @if $mode == 'span' and $stretch == 'each' { // на последнем viewport 1fr возможно все
+    //   $len: length($min-max-pairs);
+    //   $nth: $len - ($temp-i - 1);
+    //
+    //   $penult: nth($min-max-pairs, $nth - 1);
+    //   $last: nth($min-max-pairs, $nth);
+    //
+    //   $max-penult: nth($penult, 2);
+    //   //$max-last: nth($last, 2);
+    //   $max-last: $available-parts;
+    //
+    //   $available-parts: 0;
+    //
+    //   @for $i from 1 to $len + 1 {
+    //     $pair: nth($min-max-pairs, $i);
+    //     $max: nth($pair, 2);
+    //
+    //     @if $i >= $nth {
+    //       $available-parts: $available-parts + $max;
+    //     }
+    //   }
+    //
+    //   $max-penult: $max-penult + $available-parts;
+    //
+    //   @for $i from 1 to $len + 1 {
+    //     $pair: nth($min-max-pairs, $i);
+    //     $min: nth($pair, 1);
+    //     $max: nth($pair, 2);
+    //
+    //     @if $i == $nth - 1 {
+    //       $max: $max-penult;
+    //     } @else if $i == $nth {
+    //       $max: $max-last;
+    //     }
+    //
+    //     $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, $i, ($min, $max));
+    //   }
+    //
+    //   $available-parts: $cols - $available-parts;
+    // }
+
+
+    @if $mode == 'span' and $stretch == 'repetitive' { // на последнем viewport 1fr возможно все
+      $rep-seq: calc-repetitive-sequence($min-max-pairs);
+
+      $len: length($rep-seq);
       $nth: $len - ($temp-i - 1);
 
-      $penult: nth($min-max-pairs, $nth - 1);
-      $last: nth($min-max-pairs, $nth);
+      $penult: nth($rep-seq, $nth - 1);
+      $last: nth($rep-seq, $nth);
 
-      $max-penult: nth($penult, 2);
-      $max-last: nth($last, 2);
-      $max-last: $available-parts;
+      $penult-min-max: nth($penult, 1);
+      $last-min-max: nth($last, 1);
 
+      $penult-seq-count: nth($penult, 2);
+      $last-seq-count: nth($last, 2);
+
+      $max-penult: nth($penult-min-max, 2);
+      //$max-last: nth($last, 2);
+      $max-last: math.div($available-parts, $last-seq-count);
 
       $available-parts: 0;
 
-      @for $i from 1 to $len + 1 {
-        $pair: nth($min-max-pairs, $i);
-        $min: nth($pair, 1);
-        $max: nth($pair, 2);
+      @for $i from $nth to $len + 1 {
+        $pair: nth($rep-seq, $i);
+        $max: nth(nth($pair, 1), 2);
+        $count: nth($pair, 2);
 
-        @if $i >= $nth {
-          $available-parts: $available-parts + $max;
-          @debug $pair;
-        }
-
-        @debug '';
-
-        @if $i == $nth - 1 {
-          //$max: $max-penult;
-        } @else if $i == $nth {
-          $max: $max-last;
-
-        }
-
-        $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, $i, ($min, $max));
+        $available-parts: $available-parts + $max * $count;
       }
 
-      $max-penult: $max-penult + $available-parts;
+      $max-penult: $max-penult + math.div($available-parts, $penult-seq-count);
 
-      $transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, $nth - 1, replace-nth(($min, $max), 2, $max-penult));
+      $new-transformed: [];
 
+      @for $i from 1 to $len + 1 {
+        $pair: nth($rep-seq, $i);
+        $min: nth(nth($pair, 1), 1);
+        $max: nth(nth($pair, 1), 2);
+        $count: nth($pair, 2);
+
+        @if $i == $nth - 1 {
+          $max: $max-penult;
+        } @else if $i == $nth {
+          $max: $max-last;
+        }
+
+        @for $counter from 1 to $count + 1 {
+          $new-transformed: append($new-transformed, ($min, $max));
+        }
+
+
+      }
+
+      $transformed-min-max-pairs: $new-transformed;
       $available-parts: $cols - $available-parts;
-
-
-
-      @debug $max-penult;
-
-      @debug $available-parts;
-
-      //$available-parts: $cols - $available-parts;
-
-      // @for $i from $nth to $len {
-      //   $max: $max: nth($pair, 2);
-      // }
     }
-
-    //$transformed-min-max-pairs: replace-nth($transformed-min-max-pairs, 1, ($min, $max));
-
-
 
     $calculated: append($calculated, ($viewport, $template, $cols, $items-in-row, $transformed-min-max-pairs));
 
