@@ -554,8 +554,7 @@
   // Если одиннаковые колонки подряд то объеденить в repeat и число колонок
   // если спан, то есть для fr также обьеденять и из колонок минусовать, span видимо пересчитывать
 
-
-  @if length($transformed-min-max-pairs) > 1 {
+  @if length(calc-repetitive-sequence($transformed-min-max-pairs)) > 1 { // refactor
     @if $mode == 'span' {
 
       $template: repeat($cols, 1fr);
@@ -644,7 +643,8 @@
   $decrement: 1;
   $treshold: 2; // $items-in-row threshold before min-viewport
   $template: null;
-  $average-min: null;
+  //$average-min: null;
+  $mins: [];
 
   @if $decreaser {
     $decrement: 2;
@@ -879,20 +879,36 @@
   $calculated: append($calculated, ($viewport, $template, $cols, $items-in-row, $transformed-min-max-pairs));
 
 
+  @if $is-one-pair { // Логику перенести в начало, и отрефакторить связанные части
+    $template: nth($transformed-min-max-pairs, 1);
+    $transformed-min-max-pairs: [];
 
-  @if $is-one-pair {
-    $min: nth(nth($transformed-min-max-pairs, 1), 1);
-    $average-min: del-unit($min);
-
-  } @else {
-    $mins: [];
-
-    @each $pair in $transformed-min-max-pairs {
-      $min: nth($pair, 1);
-      $mins: append($mins, $min);
+    @for $counter from 0 to $items-in-row {
+      $transformed-min-max-pairs: append($transformed-min-max-pairs, $template);
     }
+  }
 
-    $average-min: math.div(sum($mins), length($mins));
+
+  // @if $is-one-pair {
+  //   $min: nth(nth($transformed-min-max-pairs, 1), 1);
+  //   $average-min: del-unit($min);
+  //
+  // } @else {
+  //   $mins: [];
+  //
+  //   @each $pair in $transformed-min-max-pairs {
+  //     $min: nth($pair, 1);
+  //     $mins: append($mins, $min);
+  //   }
+  //
+  //   $average-min: math.div(sum($mins), length($mins));
+  // }
+
+
+
+  @each $pair in $transformed-min-max-pairs {
+    $min: nth($pair, 1);
+    $mins: append($mins, $min);
   }
 
   @if $decreaser == 'even' {
@@ -922,12 +938,22 @@
   @while $items-in-row >= $treshold {
     // refactor conditions below
 
+    $mins: slice($mins, 1, $items-in-row);
+
     $gaps-sum: $gap * ($items-in-row - 1);
-    $viewport: ($average-min * $items-in-row) + $gaps-sum + $padding;
-    $items-in-row: $items-in-row - $decrement;
+    //$viewport: ($average-min * $items-in-row) + $gaps-sum + $padding;
+    $viewport: sum($mins) + $gaps-sum + $padding;
+
+    @if $stretch != 'repetitive' {
+      $items-in-row: $items-in-row - $decrement;
+    } @else {
+      //$treshold: nth(nth(calc-repetitive-sequence($transformed-min-max-pairs), 1), 2); // Если так, то когда станет одна кололка все сразу 1fr
+      $treshold: 0; // Если так то, когда первый минимум
+    }
+
 
     @if $items-in-row >= $treshold { // refactor
-      $pair: nth($transformed-min-max-pairs, 1);
+      $pair: nth($transformed-min-max-pairs, 1); // ?? refactor
       $min: nth($pair, 1);
       $max: nth($pair, 2);
 
@@ -995,57 +1021,72 @@
     @if $mode == 'span' and $stretch == 'repetitive' { // на последнем viewport 1fr возможно все
       $rep-seq: calc-repetitive-sequence($min-max-pairs);
 
+      @debug $mins;
+
       $len: length($rep-seq);
       $nth: $len - ($temp-i - 1);
 
-      $penult: nth($rep-seq, $nth - 1);
-      $last: nth($rep-seq, $nth);
+      @debug $treshold;
 
-      $penult-min-max: nth($penult, 1);
-      $last-min-max: nth($last, 1);
+      @debug $nth;
 
-      $penult-seq-count: nth($penult, 2);
-      $last-seq-count: nth($last, 2);
+      @if $nth > 1 {
+        $penult: nth($rep-seq, $nth - 1);
+        $last: nth($rep-seq, $nth);
 
-      $max-penult: nth($penult-min-max, 2);
-      //$max-last: nth($last, 2);
-      $max-last: math.div($available-parts, $last-seq-count);
+        $penult-min-max: nth($penult, 1);
+        $last-min-max: nth($last, 1);
 
-      $available-parts: 0;
+        $penult-seq-count: nth($penult, 2);
+        $last-seq-count: nth($last, 2);
 
-      @for $i from $nth to $len + 1 {
-        $pair: nth($rep-seq, $i);
-        $max: nth(nth($pair, 1), 2);
-        $count: nth($pair, 2);
+        $max-penult: nth($penult-min-max, 2);
+        //$max-last: nth($last, 2);
+        $max-last: math.div($available-parts, $last-seq-count);
 
-        $available-parts: $available-parts + $max * $count;
-      }
+        $available-parts: 0;
 
-      $max-penult: $max-penult + math.div($available-parts, $penult-seq-count);
+        @for $i from $nth to $len + 1 {
+          $pair: nth($rep-seq, $i);
+          $max: nth(nth($pair, 1), 2);
+          $count: nth($pair, 2);
 
-      $new-transformed: [];
-
-      @for $i from 1 to $len + 1 {
-        $pair: nth($rep-seq, $i);
-        $min: nth(nth($pair, 1), 1);
-        $max: nth(nth($pair, 1), 2);
-        $count: nth($pair, 2);
-
-        @if $i == $nth - 1 {
-          $max: $max-penult;
-        } @else if $i == $nth {
-          $max: $max-last;
+          $available-parts: $available-parts + $max * $count;
         }
 
-        @for $counter from 1 to $count + 1 {
-          $new-transformed: append($new-transformed, ($min, $max));
+        $max-penult: $max-penult + math.div($available-parts, $penult-seq-count);
+
+        $new-transformed: [];
+
+        @for $i from 1 to $len + 1 {
+          $pair: nth($rep-seq, $i);
+          $min: nth(nth($pair, 1), 1);
+          $max: nth(nth($pair, 1), 2);
+          $count: nth($pair, 2);
+
+          @if $i == $nth - 1 {
+            $max: $max-penult;
+          } @else if $i == $nth {
+            $max: $max-last;
+          }
+
+          @for $counter from 1 to $count + 1 {
+            $new-transformed: append($new-transformed, ($min, $max));
+          }
+
+
         }
 
-
+        $transformed-min-max-pairs: $new-transformed;
+        $available-parts: $cols - $available-parts;
+         // $last-seq-count == $decrement сделать
+        $items-in-row: $items-in-row - $last-seq-count;
+      } @else {
+        $items-in-row: $treshold - 1;
       }
 
-      $transformed-min-max-pairs: $new-transformed;
-      $available-parts: $cols - $available-parts;
+
+
     }
 
     $calculated: append($calculated, ($viewport, $template, $cols, $items-in-row, $transformed-min-max-pairs));
@@ -1169,10 +1210,13 @@
         }
 
         @if $i == length($calculated) { // temp
+          grid-template-columns: 1fr;
           & > * {
             grid-column: span 1 !important;
           }
         }
+
+
 
       }
 

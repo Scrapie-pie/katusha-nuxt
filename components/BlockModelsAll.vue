@@ -58,14 +58,14 @@ export default {
     //@include smart-grid([[3] [3] [4] [2]], $mode: 'span', $stretch: true);
 
 
-    @include smart-grid([[3] [3] [4] [2]], $mode: 'span', $stretch: 'repetitive'); // Последнюю растянуть если стретч и если есть свободное место
+    @include smart-grid([[2] [3] [3] [2] [2]], $mode: 'span', $stretch: 'repetitive'); // Последнюю растянуть если стретч и если есть свободное место
 
     //@include smart-grid(('auto', 3), $mode: 'span'); // work
 
 
     //@include smart-grid((auto, 6), $stretch: true); //work
 
-    //@include smart-grid((100px, null), $cols: 8); // work
+    //@include smart-grid((0.5, null), $cols: 8); // work
 
     //@include smart-grid((100px, 150px), $cols: 8); // work
     //@include smart-grid((100px, 300px)); // work
