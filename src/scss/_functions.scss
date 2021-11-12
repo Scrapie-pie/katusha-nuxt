@@ -549,8 +549,13 @@
   $result: 1;
 
   @each $number in $numbers {
-    $result: _lcm($result, $number)
+    $result: _lcm($result, $number);
   }
 
-	@return $result
+	@return $result;
 }
+
+
+// @function sort-by-index($list, $depth) {
+//
+// }

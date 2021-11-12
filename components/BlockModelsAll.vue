@@ -58,7 +58,7 @@ export default {
     //@include smart-grid([[3] [3] [4] [2]], $mode: 'span', $stretch: true);
 
 
-    @include smart-grid([[2] [3] [3] [2] [2]], $mode: 'span', $stretch: 'repetitive'); // Последнюю растянуть если стретч и если есть свободное место
+    @include smart-grid([[2] [2] [1] [1] [2] [2] [2]], $mode: 'span', $stretch: 'repetitive'); // Последнюю растянуть если стретч и если есть свободное место
 
     //@include smart-grid(('auto', 3), $mode: 'span'); // work
 
