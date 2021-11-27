@@ -53,17 +53,19 @@ export default {
     //background-color: blue;
 
     //@include smart-grid(8); //work
-    //@include smart-grid(6, $stretch: true); //work
+    @include smart-grid([(3)], $mode: 'span'); //work
+    //@include smart-grid(4, $stretch: true); //not work
+    //@include smart-grid(4, $mode: 'span', $stretch: true); // hz work or not
 
     //@include smart-grid([[3] [3] [4] [2]], $mode: 'span', $stretch: true);
 
 
-    @include smart-grid([[2] [2] [1] [1] [2] [2] [2]], $mode: 'span', $stretch: 'repetitive'); // Последнюю растянуть если стретч и если есть свободное место
+    //@include smart-grid([[2] [2] [1] [1] [2] [2] [2]], $mode: 'span', $stretch: 'repetitive'); // not working yet
 
     //@include smart-grid(('auto', 3), $mode: 'span'); // work
 
 
-    //@include smart-grid((auto, 6), $stretch: true); //work
+    //@include smart-grid((auto, 2), $mode: 'span', $stretch: true); //work
 
     //@include smart-grid((0.5, null), $cols: 8); // work
 
@@ -86,7 +88,7 @@ export default {
 
     //@include smart-grid((9, 3)); // Значит 9 колонок, и тянем по 3 каждую -> ДОБАВИТЬ
 
-    //@include smart-grid(('auto', 3), $mode: 'span'); // work
+    //@include smart-grid(('auto', 3), $mode: 'span', $stretch: true); // work
     //@include smart-grid((0.5, 3), $mode: 'percent'); // work
     //@include smart-grid((0.5, 3), $mode: 'px'); // work
 

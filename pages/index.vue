@@ -2,13 +2,13 @@
   <main>
     <SectionEcoSystem/>
     <SectionModels/>
-    <!-- <SectionServer/>
+    <SectionServer/>
     <SectionTerminal/>
     <SectionBiometry/>
     <SectionMonitoring/>
     <SectionSoftware/>
     <SectionMobile/>
-    <SectionInvite/> -->
+    <SectionInvite/>
     <!-- <SectionContacts/> -->
   </main>
 </template>
